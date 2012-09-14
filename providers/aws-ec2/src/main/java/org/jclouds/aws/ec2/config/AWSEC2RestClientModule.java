@@ -163,4 +163,15 @@ public class AWSEC2RestClientModule extends EC2RestClientModule<AWSEC2Client, AW
       bind(RunInstancesOptions.class).to(AWSRunInstancesOptions.class);
       super.configure();
    }
+   
+   @Override
+   protected void installLocations() {
+     install(new LocationModule());
+     bind(RegionIdToZoneIdsSupplier.class).to(DescribeAvailabilityZonesInRegion.class).in(Scopes.SINGLETON);
+     bind(RegionIdToURISupplier.class).to(ExtendededDescribeRegionsForRegionURIs.class).in(Scopes.SINGLETON);
+     bind(ZoneIdsSupplier.class).to(ZoneIdsFromRegionIdToZoneIdsValues.class).in(Scopes.SINGLETON);
+     bind(RegionIdsSupplier.class).to(RegionIdsFromRegionIdToURIKeySet.class).in(Scopes.SINGLETON);
+     bind(ZoneIdToURISupplier.class).to(ZoneIdToURIFromJoinOnRegionIdToURI.class).in(Scopes.SINGLETON);
+   }
+   
 }
