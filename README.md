@@ -1,3 +1,32 @@
+For tests to work, I have changed the URI returned after making call to describeRegions().
+The call to describeRegions() is made so that endpoint can be found.
+
+After these changes tests which are passing are as follows 
+
+    setServiceDefaults(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
+    testAssignability(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+    testCorrectExceptionRunningNodesNotFound(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
+    testGetAssignableLocations(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
+    testImageById(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
+    testListSizes(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
+    testDescribeImages(org.jclouds.aws.ec2.services.AWSAMIClientLiveTest)
+    testGetAssignableLocations(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+    testDescribe(org.jclouds.aws.ec2.services.AWSSecurityGroupClientLiveTest)
+    testTemplateBuilderWithImageIdSpecified(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+    testTemplateBuilderWithLoginUserSpecified(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+    testTemplateBuilderCanUseImageIdWithoutFetchingAllImages(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+
+Files which are changed are 
+1. jclouds/providers/aws-ec2/src/main/java/org/jclouds/aws/ec2/config/AWSRestClientModule.java
+
+Files added are 
+1. jclouds/providers/aws-ec2/src/main/java/org/jclouds/aws/ec2/suppliers/ExtendededDescribeRegionsForRegionURIs.java
+
+
+
+
+
+
 jclouds
 ======
 jclouds allows provisioning and control of cloud resources, including blobstore
