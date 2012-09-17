@@ -172,8 +172,8 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
          
          assertTrue(runningTester.apply(instance), instanceId + "didn't achieve the state running!");
 
-         instance = getOnlyElement(concat(ec2Client.getInstanceServices().describeInstancesInRegion(regionId,
-               instanceId)));
+         instance =(RunningInstance) (getOnlyElement(concat(ec2Client.getInstanceServices().describeInstancesInRegion(regionId,
+               instanceId))));
          BlockDevice device = instance.getEbsBlockDevices().get("/dev/sda1");
          assertNotNull(device, "device: /dev/sda1 not present on: " + instance);
          Snapshot snapshot = ec2Client.getElasticBlockStoreServices().createSnapshotInRegion(regionId,

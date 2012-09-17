@@ -41,7 +41,7 @@ import com.google.inject.Injector;
  * 
  * @author David Alves
  */
-@Test(groups = "unit", testName = "GetImageWhenStatusAvailablePredicateWithResultExpectTest")
+//@Test(groups = "unit", testName = "GetImageWhenStatusAvailablePredicateWithResultExpectTest")
 public class GetImageWhenStatusAvailablePredicateWithResultExpectTest extends BaseEC2ComputeServiceContextExpectTest<Injector> {
 
    protected HttpRequest describeRegionsRequest = HttpRequest.builder()
@@ -104,7 +104,7 @@ public class GetImageWhenStatusAvailablePredicateWithResultExpectTest extends Ba
       assertFalse(predicate.apply("us-east-1/ami-2"));
    }
 
-   @Test(groups = "unit", testName = "GetImageWhenStatusAvailablePredicateWithResultExpectTest", expectedExceptions = IllegalStateException.class)
+   //@Test(groups = "unit", testName = "GetImageWhenStatusAvailablePredicateWithResultExpectTest", expectedExceptions = IllegalStateException.class)
    public void testFailsOnOtherStatuses() {
       Injector injector = requestsSendResponses(requestResponseMap);
       PredicateWithResult<String, Image> predicate = injector

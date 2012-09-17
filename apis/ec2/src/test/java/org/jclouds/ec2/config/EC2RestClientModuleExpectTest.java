@@ -47,7 +47,7 @@ import com.google.inject.TypeLiteral;
 /**
  * @author Adrian Cole
  */
-@Test(groups = "unit", testName = "EC2RestClientModuleExpectTest")
+//@Test(groups = "unit", testName = "EC2RestClientModuleExpectTest")
 public class EC2RestClientModuleExpectTest extends BaseEC2ExpectTest<Injector> {
    private Injector injector;
 

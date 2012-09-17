@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.inject.Singleton;
 
+import com.google.inject.Scopes;
 import org.jclouds.aws.ec2.AWSEC2AsyncClient;
 import org.jclouds.aws.ec2.AWSEC2Client;
 import org.jclouds.aws.ec2.domain.AWSRunningInstance;
@@ -63,6 +64,13 @@ import org.jclouds.ec2.services.SecurityGroupAsyncClient;
 import org.jclouds.ec2.services.SecurityGroupClient;
 import org.jclouds.ec2.services.WindowsAsyncClient;
 import org.jclouds.ec2.services.WindowsClient;
+import org.jclouds.ec2.suppliers.DescribeAvailabilityZonesInRegion;
+import org.jclouds.aws.ec2.suppliers.ExtendededDescribeRegionsForRegionURIs;
+import org.jclouds.location.config.LocationModule;
+import org.jclouds.location.suppliers.*;
+import org.jclouds.location.suppliers.derived.RegionIdsFromRegionIdToURIKeySet;
+import org.jclouds.location.suppliers.derived.ZoneIdToURIFromJoinOnRegionIdToURI;
+import org.jclouds.location.suppliers.derived.ZoneIdsFromRegionIdToZoneIdsValues;
 import org.jclouds.rest.ConfiguresRestClient;
 
 import com.google.common.collect.ImmutableMap;
@@ -163,4 +171,14 @@ public class AWSEC2RestClientModule extends EC2RestClientModule<AWSEC2Client, AW
       bind(RunInstancesOptions.class).to(AWSRunInstancesOptions.class);
       super.configure();
    }
+
+    @Override
+    protected void installLocations() {
+        install(new LocationModule());
+        bind(RegionIdToZoneIdsSupplier.class).to(DescribeAvailabilityZonesInRegion.class).in(Scopes.SINGLETON);
+        bind(RegionIdToURISupplier.class).to(ExtendededDescribeRegionsForRegionURIs.class).in(Scopes.SINGLETON);
+        bind(ZoneIdsSupplier.class).to(ZoneIdsFromRegionIdToZoneIdsValues.class).in(Scopes.SINGLETON);
+        bind(RegionIdsSupplier.class).to(RegionIdsFromRegionIdToURIKeySet.class).in(Scopes.SINGLETON);
+        bind(ZoneIdToURISupplier.class).to(ZoneIdToURIFromJoinOnRegionIdToURI.class).in(Scopes.SINGLETON);
+    }
 }

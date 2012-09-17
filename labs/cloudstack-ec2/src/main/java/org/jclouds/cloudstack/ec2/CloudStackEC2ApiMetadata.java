@@ -18,13 +18,13 @@
  */
 package org.jclouds.cloudstack.ec2;
 
-import java.net.URI;
-import java.util.Properties;
-
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
+
+import java.net.URI;
+import java.util.Properties;
 
 
 /**
@@ -64,7 +64,7 @@ public class CloudStackEC2ApiMetadata extends EC2ApiMetadata {
          id("cloudstack-ec2")
          .name("CloudStackEC2 (EC2 clone) API")
          .version("2010-11-15")
-         .defaultEndpoint("http://localhost:8090/bridge/rest/AmazonEC2")
+         .defaultEndpoint("http://10.147.39.67:7080/awsapi")
          .documentation(URI.create("http://docs.cloudstack.org/CloudBridge_Documentation"))
          .defaultProperties(CloudStackEC2ApiMetadata.defaultProperties());
       }

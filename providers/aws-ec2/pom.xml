@@ -34,13 +34,13 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <test.aws-ec2.endpoint>https://ec2.us-east-1.amazonaws.com</test.aws-ec2.endpoint>
-    <test.aws-ec2.api-version>2011-05-15</test.aws-ec2.api-version>
+    <test.aws-ec2.endpoint>http://10.147.39.67:7080/awsapi</test.aws-ec2.endpoint>
+    <test.aws-ec2.api-version>2010-11-15</test.aws-ec2.api-version>
     <test.aws-ec2.build-version></test.aws-ec2.build-version>
-    <test.aws-ec2.identity>${test.aws.identity}</test.aws-ec2.identity>
-    <test.aws-ec2.credential>${test.aws.credential}</test.aws-ec2.credential>
-    <test.aws-ec2.template></test.aws-ec2.template>
-    <test.aws-ec2.ebs-template>hardwareId=m1.small,imageId=us-west-2/ami-38c64a08</test.aws-ec2.ebs-template>
+    <test.aws-ec2.identity>YaDCezvWP2_TfuNW9pO7IMovjpGXRTQktyU0-lm6g1uEEzmH3asmeLue_LiboZotjQ4Ch8KLbgvGdHMF1IopLw</test.aws-ec2.identity>
+    <test.aws-ec2.credential>2RbNyU916ccnLRInI9sb8lcRTE6-rF3fJKBq9-_4aHU-nFG5QjXGWCIQSbyT_e7jr-LH7rLWaQ9TUJxjPCxgdg</test.aws-ec2.credential>
+    <test.aws-ec2.template>imageId=AmazonEC2/7ef37942-d584-4dff-a0f5-3697bdb3a355</test.aws-ec2.template>
+    <test.aws-ec2.ebs-template>hardwareId=m1.small,imageId=AmazonEC2/7ef37942-d584-4dff-a0f5-3697bdb3a355</test.aws-ec2.ebs-template>
     <test.aws-ec2.windows-template>hardwareId=m1.small,imageNameMatches=Windows_Server-2008-R2_SP1-English-64Bit-Base-WinRM-</test.aws-ec2.windows-template>
     <test.aws-ec2.windows-owner>449550055360</test.aws-ec2.windows-owner>
     <jclouds.osgi.export>org.jclouds.aws.ec2*;version="${project.version}"</jclouds.osgi.export>

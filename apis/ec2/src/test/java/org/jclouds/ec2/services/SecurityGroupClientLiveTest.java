@@ -87,7 +87,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
       cleanupAndSleep(groupName);
       try {
          String groupDescription = PREFIX + "1 description";
-         client.deleteSecurityGroupInRegion(null, groupName);
+         //client.deleteSecurityGroupInRegion(null, groupName);
          client.createSecurityGroupInRegion(null, groupName, groupDescription);
          verifySecurityGroup(groupName, groupDescription);
       } finally {
@@ -137,10 +137,13 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    private void verifySecurityGroup(String groupName, String description) {
-      Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null, groupName);
+      Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null);
       assertNotNull(oneResult);
-      assertEquals(oneResult.size(), 1);
-      SecurityGroup listPair = oneResult.iterator().next();
+      assertEquals(oneResult.size(), 2);
+      Iterator<SecurityGroup> sresult = oneResult.iterator();
+      sresult.next();
+      sresult.remove();
+      SecurityGroup listPair = sresult.next();
       assertEquals(listPair.getName(), groupName);
       assertEquals(listPair.getDescription(), description);
    }

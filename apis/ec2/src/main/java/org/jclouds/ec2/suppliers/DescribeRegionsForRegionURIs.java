@@ -46,6 +46,7 @@ public class DescribeRegionsForRegionURIs implements RegionIdToURISupplier {
    @Region
    @Override
    public Map<String, Supplier<URI>> get() {
+      //Map<String, URI> regionToUris = null;
       Map<String, URI> regionToUris = client.describeRegions();
       return Maps.transformValues(regionToUris, Suppliers2.<URI> ofInstanceFunction());
    }

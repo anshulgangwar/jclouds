@@ -34,13 +34,13 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <test.cloudstack-ec2.endpoint>http://localhost:8090/bridge/rest/AmazonEC2</test.cloudstack-ec2.endpoint>
+    <test.cloudstack-ec2.endpoint>http://10.147.39.67:7080/awsapi</test.cloudstack-ec2.endpoint>
     <test.cloudstack-ec2.api-version>2010-11-15</test.cloudstack-ec2.api-version>
     <test.cloudstack-ec2.build-version></test.cloudstack-ec2.build-version>
-    <test.cloudstack-ec2.identity>FIXME_IDENTITY</test.cloudstack-ec2.identity>
-    <test.cloudstack-ec2.credential>FIXME_CREDENTIAL</test.cloudstack-ec2.credential>
-    <test.cloudstack-ec2.template>imageId=fixme-region/ami-fixme</test.cloudstack-ec2.template>
-    <test.cloudstack-ec2.ebs-template>imageId=fixme-region/ami-fixmeebs</test.cloudstack-ec2.ebs-template>
+    <test.cloudstack-ec2.identity>YaDCezvWP2_TfuNW9pO7IMovjpGXRTQktyU0-lm6g1uEEzmH3asmeLue_LiboZotjQ4Ch8KLbgvGdHMF1IopLw</test.cloudstack-ec2.identity>
+    <test.cloudstack-ec2.credential>2RbNyU916ccnLRInI9sb8lcRTE6-rF3fJKBq9-_4aHU-nFG5QjXGWCIQSbyT_e7jr-LH7rLWaQ9TUJxjPCxgdg</test.cloudstack-ec2.credential>
+    <test.cloudstack-ec2.template>imageId=AmazonEC2/7ef37942-d584-4dff-a0f5-3697bdb3a355</test.cloudstack-ec2.template>
+    <test.cloudstack-ec2.ebs-template>imageId=AmazonEC2/7ef37942-d584-4dff-a0f5-3697bdb3a355</test.cloudstack-ec2.ebs-template>
     <jclouds.osgi.export>org.jclouds.cloudstack.ec2*;version="${project.version}"</jclouds.osgi.export>
     <jclouds.osgi.import>
       org.jclouds.compute.internal;version="${project.version}",

@@ -42,7 +42,7 @@ import com.google.common.collect.Iterables;
  * 
  * @author Adrian Cole
  */
-@Test(groups = "unit", testName = "EC2ComputeServiceExpectTest")
+//@Test(groups = "unit", testName = "EC2ComputeServiceExpectTest")
 public class EC2ComputeServiceExpectTest extends BaseEC2ComputeServiceExpectTest {
 
    static String region = "us-east-1";

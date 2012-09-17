@@ -51,6 +51,8 @@
         <module>allblobstore</module>
         <module>allloadbalancer</module>
         <module>all</module>
+        <module>cloudstack-query-ec2</module>
+        <module>cloudstack-query-ec2</module>
     </modules>
     <build>
         <plugins>

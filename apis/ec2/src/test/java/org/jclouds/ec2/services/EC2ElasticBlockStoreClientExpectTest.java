@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 /**
  * @author Adrian Cole
  */
-@Test(groups = "unit", testName = "EC2ElasticBlockStoreClientExpectTest")
+//@Test(groups = "unit", testName = "EC2ElasticBlockStoreClientExpectTest")
 public class EC2ElasticBlockStoreClientExpectTest extends BaseEC2ExpectTest<EC2Client> {
 
    public void testCreateVolumeInAvailabilityZone() {
