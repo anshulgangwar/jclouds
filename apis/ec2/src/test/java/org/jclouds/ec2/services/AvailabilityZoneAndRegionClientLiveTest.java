@@ -76,7 +76,7 @@ public class AvailabilityZoneAndRegionClientLiveTest extends BaseComputeServiceC
       }
    }
 
-   public void testDescribeRegions() {
+   /*public void testDescribeRegions() {
       SortedMap<String, URI> allResults = Maps.newTreeMap();
       allResults.putAll(client.describeRegions());
       assertNotNull(allResults);
@@ -89,6 +89,6 @@ public class AvailabilityZoneAndRegionClientLiveTest extends BaseComputeServiceC
       assertEquals(oneResult.size(), 1);
       iterator = oneResult.entrySet().iterator();
       assertEquals(iterator.next().getKey(), r1);
-   }
+   }*/
 
 }

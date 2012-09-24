@@ -80,7 +80,7 @@ public class KeyPairClientLiveTest extends BaseComputeServiceContextLiveTest {
       } catch (Exception e) {
 
       }
-      client.deleteKeyPairInRegion(null, keyName);
+      //client.deleteKeyPairInRegion(null, keyName);
 
       KeyPair result = client.createKeyPairInRegion(null, keyName);
       assertNotNull(result);
