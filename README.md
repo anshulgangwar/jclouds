@@ -1,4 +1,4 @@
-My Main code changes are in cloudstack-query-ec2 branch, separate project created for that.
+My Main code changes are in cloudstack-query-ec2 branch, separate project cloudstack-query-ec2 created for that.
 
 Currently working tests are as follows 
 
