@@ -1,26 +1,36 @@
-For tests to work, I have changed the URI returned after making call to describeRegions().
-The call to describeRegions() is made so that endpoint can be found.
+My Main code changes are in cloudstack-query-ec2 branch, separate project created for that.
 
-After these changes tests which are passing are as follows 
+Currently working tests are as follows 
 
-    setServiceDefaults(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
-    testAssignability(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
-    testCorrectExceptionRunningNodesNotFound(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
-    testGetAssignableLocations(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
-    testImageById(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
-    testListSizes(org.jclouds.aws.ec2.compute.AWSEC2ComputeServiceLiveTest)
-    testDescribeImages(org.jclouds.aws.ec2.services.AWSAMIClientLiveTest)
-    testGetAssignableLocations(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
-    testDescribe(org.jclouds.aws.ec2.services.AWSSecurityGroupClientLiveTest)
-    testTemplateBuilderWithImageIdSpecified(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
-    testTemplateBuilderWithLoginUserSpecified(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
-    testTemplateBuilderCanUseImageIdWithoutFetchingAllImages(org.jclouds.aws.ec2.compute.AWSEC2TemplateBuilderLiveTest)
+CloudStackQueryEC2InstanceClientLiveTest
 
-Files which are changed are 
-1. jclouds/providers/aws-ec2/src/main/java/org/jclouds/aws/ec2/config/AWSRestClientModule.java
+    testDescribeInstances
 
-Files added are 
-1. jclouds/providers/aws-ec2/src/main/java/org/jclouds/aws/ec2/suppliers/ExtendededDescribeRegionsForRegionURIs.java
+CloudStackQueryEC2ElasticIPAddressClientLiveTest
+
+    testDescribeAddresses
+
+CloudStackQueryEC2ElasticBlockStoreClientLiveTest
+
+    testAttachVolumeInRegion
+    testCreateVolumeInAvailabilityZone
+    testDescribeSnapshots
+    testDescribeVolumes
+    testDetachVolumeInRegion
+
+CloudStackQueryEC2AvailabilityZoneAndRegionClientLiveTest
+
+    testDescribeAvailabilityZones
+
+CloudStackQueryEC2KeyPairClientLiveTest
+
+    testCreateKeyPair
+    testDescribeKeyPairs
+
+CloudStackQueryEC2SecurityGroupClientLiveTest
+
+    testCreateSecurityGroup
+    testDescribe
 
 
 
