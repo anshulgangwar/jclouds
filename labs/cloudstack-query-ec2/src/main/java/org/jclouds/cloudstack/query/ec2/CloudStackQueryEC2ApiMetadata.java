@@ -1,12 +1,21 @@
 package org.jclouds.cloudstack.query.ec2;
 
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Module;
 import org.jclouds.apis.ApiMetadata;
+import org.jclouds.cloudstack.query.ec2.config.CloudstackQueryEC2RestClientModule;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
+import org.jclouds.ec2.compute.config.EC2ComputeServiceContextModule;
+import org.jclouds.ec2.compute.config.EC2ResolveImagesModule;
+import org.jclouds.ec2.config.EC2RestClientModule;
 
 import java.net.URI;
 import java.util.Properties;
+
+import static org.jclouds.location.reference.LocationConstants.PROPERTY_REGIONS;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,6 +47,7 @@ public class CloudStackQueryEC2ApiMetadata extends EC2ApiMetadata{
 
     public static Properties defaultProperties() {
         Properties properties = EC2ApiMetadata.defaultProperties();
+        properties.setProperty(PROPERTY_REGIONS, "AmazonEC2");
         return properties;
     }
 
@@ -47,9 +57,10 @@ public class CloudStackQueryEC2ApiMetadata extends EC2ApiMetadata{
             id("cloudstack-query-ec2")
                     .name("CloudStackEC2 (EC2 clone) API")
                     .version("2010-11-15")
-                    .defaultEndpoint("http://10.147.39.67:7080/awsapi")
+                    .defaultEndpoint("http://127.0.0.1:7080/awsapi")
                     .documentation(URI.create("http://docs.cloudstack.org/CloudBridge_Documentation"))
-                    .defaultProperties(CloudStackQueryEC2ApiMetadata.defaultProperties());
+                    .defaultProperties(CloudStackQueryEC2ApiMetadata.defaultProperties())
+                    .defaultModules(ImmutableSet.<Class<? extends Module>>of(CloudstackQueryEC2RestClientModule.class, EC2ResolveImagesModule.class, EC2ComputeServiceContextModule.class));
         }
 
         @Override

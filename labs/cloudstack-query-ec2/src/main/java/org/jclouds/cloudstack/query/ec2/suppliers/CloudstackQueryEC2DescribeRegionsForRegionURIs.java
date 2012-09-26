@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.services.AvailabilityZoneAndRegionClient;
 import org.jclouds.ec2.suppliers.DescribeRegionsForRegionURIs;
+import org.jclouds.location.Provider;
 import org.jclouds.util.Suppliers2;
 
 import javax.inject.Inject;
@@ -23,22 +24,21 @@ import java.util.Map;
 public class CloudstackQueryEC2DescribeRegionsForRegionURIs extends DescribeRegionsForRegionURIs {
 
     private final AvailabilityZoneAndRegionClient client;
+    private Supplier<URI> defaultURISupplier;
 
     @Inject
-    public CloudstackQueryEC2DescribeRegionsForRegionURIs(EC2Client client) {
+    public CloudstackQueryEC2DescribeRegionsForRegionURIs(@Provider Supplier<URI> defaultURISupplier, EC2Client client) {
         super(client);
         this.client = client.getAvailabilityZoneAndRegionServices();
+        this.defaultURISupplier = defaultURISupplier;
     }
 
     @Override
     public Map<String, Supplier<URI>> get() {
-        Map<String, URI> regionToUris = null;
-        try {
-            regionToUris = ImmutableMap.of("AmazonEC2", new URI("http://127.0.0.1:7080/awsapi"));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+        Map<String, Supplier<URI>> regionToUris = null;
+        regionToUris = ImmutableMap.of("AmazonEC2", defaultURISupplier);
 
-        return Maps.transformValues(regionToUris, Suppliers2.<URI>ofInstanceFunction());
+        return regionToUris;
     }
+
 }

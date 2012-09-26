@@ -1,10 +1,18 @@
 package org.jclouds.cloudstack.query.ec2.services;
 
 import org.jclouds.cloudstack.query.ec2.CloudStackQueryEC2ApiMetadata;
+import org.jclouds.ec2.domain.AvailabilityZoneInfo;
 import org.jclouds.ec2.services.AvailabilityZoneAndRegionClient;
 import org.jclouds.ec2.services.AvailabilityZoneAndRegionClientLiveTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.Iterator;
+import java.util.Set;
+
+import static org.jclouds.ec2.options.DescribeAvailabilityZonesOptions.Builder.availabilityZones;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,9 +39,17 @@ public class CloudStackQueryEC2AvailabilityZoneAndRegionClientLiveTest extends A
 
     public void testDescribeAvailabilityZones() {
 
-        client.describeAvailabilityZonesInRegion(null);
-
-
+        Set<AvailabilityZoneInfo> allResults = client.describeAvailabilityZonesInRegion(null);
+        assertNotNull(allResults);
+        assert allResults.size() >= 1 : allResults.size();
+        Iterator<AvailabilityZoneInfo> iterator = allResults.iterator();
+        String id1 = iterator.next().getZone();
+        Set<AvailabilityZoneInfo> oneResult = client.describeAvailabilityZonesInRegion(null,
+                availabilityZones(id1));
+        assertNotNull(oneResult);
+        assertEquals(oneResult.size(), 1);
+        iterator = allResults.iterator();
+        assertEquals(iterator.next().getZone(), id1);
 
     }
 

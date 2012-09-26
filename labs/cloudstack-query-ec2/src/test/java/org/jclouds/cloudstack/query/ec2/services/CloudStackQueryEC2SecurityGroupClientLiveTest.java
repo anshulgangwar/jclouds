@@ -41,7 +41,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 /**
- *
  * @author Adrian Cole
  */
 @Test(groups = "live", singleThreaded = true, testName = "CloudStackQueryEC2SecurityGroupClientLiveTest")
@@ -51,24 +50,26 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
     }
 
     @Override
-    @BeforeClass(groups = { "integration", "live" })
+    @BeforeClass(groups = {"integration", "live"})
     public void setupContext() {
         super.setupContext();
-        client =  (view.unwrap(CloudStackQueryEC2ApiMetadata.CONTEXT_TOKEN).getApi()).getSecurityGroupServices();
+        client = (view.unwrap(CloudStackQueryEC2ApiMetadata.CONTEXT_TOKEN).getApi()).getSecurityGroupServices();
     }
 
     @Test
     void testDescribe() {
 
 
-        client.describeSecurityGroupsInRegion(null);
-        //assertNotNull(allResults);
-        /*SecurityGroup group = allResults.last();
-       SortedSet<SecurityGroup> result = ImmutableSortedSet.<SecurityGroup> copyOf(client
-               .describeSecurityGroupsInRegion(null, group.getName()));
-       assertNotNull(result);
-       SecurityGroup compare = result.last();
-       assertEquals(compare, group);*/
+        Set<SecurityGroup> allResults = client.describeSecurityGroupsInRegion(null);
+        assertNotNull(allResults);
+        if (allResults.size() >= 1) {
+            SecurityGroup group = Iterables.getLast(allResults);
+            Set<SecurityGroup> result = client.describeSecurityGroupsInRegion(null, group.getName());
+            assertNotNull(result);
+            SecurityGroup compare = Iterables.getLast(result);
+            assertEquals(compare, group);
+
+        }
 
 
     }
@@ -86,7 +87,6 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
             client.deleteSecurityGroupInRegion(null, groupName);
         }
     }
-
 
 
     protected void cleanupAndSleep(String groupName) {
