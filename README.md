@@ -1,3 +1,46 @@
+My Main code changes are in cloudstack-query-ec2 branch, separate project cloudstack-query-ec2 created for that.
+
+Currently working tests are as follows 
+
+CloudStackQueryEC2AMIClientLiveTest
+
+    testDescribeImages
+
+CloudStackQueryEC2InstanceClientLiveTest
+
+    testDescribeInstances
+
+CloudStackQueryEC2ElasticIPAddressClientLiveTest
+
+    testDescribeAddresses
+
+CloudStackQueryEC2ElasticBlockStoreClientLiveTest
+
+    testAttachVolumeInRegion
+    testCreateVolumeInAvailabilityZone
+    testDescribeSnapshots
+    testDescribeVolumes
+    testDetachVolumeInRegion
+
+CloudStackQueryEC2AvailabilityZoneAndRegionClientLiveTest
+
+    testDescribeAvailabilityZones
+
+CloudStackQueryEC2KeyPairClientLiveTest
+
+    testCreateKeyPair
+    testDescribeKeyPairs
+
+CloudStackQueryEC2SecurityGroupClientLiveTest
+
+    testCreateSecurityGroup
+    testDescribe
+
+
+
+
+
+
 jclouds
 ======
 jclouds allows provisioning and control of cloud resources, including blobstore
