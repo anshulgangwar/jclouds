@@ -60,6 +60,7 @@ public class CloudStackQueryEC2KeyPairClientLiveTest extends KeyPairClientLiveTe
 
     @Test
     void testCreateKeyPair() {
+        //TODO
         String keyName = PREFIX + "1";
         try {
             client.deleteKeyPairInRegion(null, keyName);

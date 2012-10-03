@@ -61,5 +61,8 @@
        <module>fgcp-au</module>
        <module>fgcp-de</module>
        <module>abiquo</module>
+       <module>cloudstack-query-ec2</module>
+        <module>../cloudstack-query-ec2</module>
+        <module>../cloudstack-query-ec2</module>
     </modules>
 </project>

@@ -45,7 +45,7 @@
         <test.cloudstack-query-ec2.build-version></test.cloudstack-query-ec2.build-version>
         <test.cloudstack-query-ec2.identity>qG1DHtjlilWGVqeo2n409GNuxyxJIn-oeRU-bDEDgJr1gUR2TnzjvWdWAuCq_3VQC8iRMfIi65d-jiub8-mb0w</test.cloudstack-query-ec2.identity>
         <test.cloudstack-query-ec2.credential>cKuZqdLikxdUUbT9-sbMjnBUNu4e444cTIo-PSpFtlVVvLuzx2BZzTW_5RaA9PqMJt0hTlLNTwRjbIObaw6L3Q</test.cloudstack-query-ec2.credential>
-        <test.cloudstack-query-ec2.template>imageId=AmazonEC2/bc7550b3-58db-466a-adf4-0db96b764fff</test.cloudstack-query-ec2.template>
+        <!--<test.cloudstack-query-ec2.template>imageId=AmazonEC2/bc7550b3-58db-466a-adf4-0db96b764fff</test.cloudstack-query-ec2.template>  -->
         <test.cloudstack-query-ec2.ebs-template>imageId=AmazonEC2/bc7550b3-58db-466a-adf4-0db96b764fff</test.cloudstack-query-ec2.ebs-template>
         <jclouds.osgi.export>org.jclouds.cloudstack.ec2*;version="${project.version}"</jclouds.osgi.export>
         <jclouds.osgi.import>
@@ -119,7 +119,7 @@
                                         <test.cloudstack-query-ec2.build-version>${test.cloudstack-query-ec2.build-version}</test.cloudstack-query-ec2.build-version>
                                         <test.cloudstack-query-ec2.identity>${test.cloudstack-query-ec2.identity}</test.cloudstack-query-ec2.identity>
                                         <test.cloudstack-query-ec2.credential>${test.cloudstack-query-ec2.credential}</test.cloudstack-query-ec2.credential>
-                                        <test.cloudstack-query-ec2.template>${test.cloudstack-query-ec2.template}</test.cloudstack-query-ec2.template>
+                                      <!--  <test.cloudstack-query-ec2.template>${test.cloudstack-query-ec2.template}</test.cloudstack-query-ec2.template>   -->
                                         <test.cloudstack-query-ec2.ebs-template>${test.cloudstack-query-ec2.ebs-template}</test.cloudstack-query-ec2.ebs-template>
                                     </systemPropertyVariables>
                                 </configuration>

@@ -77,12 +77,12 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
     @Test
     void testCreateSecurityGroup() {
         String groupName = PREFIX + "1";
-        //cleanupAndSleep(groupName);
+        cleanupAndSleep(groupName);
         try {
             String groupDescription = PREFIX + "1 description";
             //client.deleteSecurityGroupInRegion(null, groupName);
             client.createSecurityGroupInRegion(null, groupName, groupDescription);
-            //verifySecurityGroup(groupName, groupDescription);
+            verifySecurityGroup(groupName, groupDescription);
         } finally {
             client.deleteSecurityGroupInRegion(null, groupName);
         }
@@ -132,11 +132,14 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
 
     private void verifySecurityGroup(String groupName, String description) {
         Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null);
-        /*assertNotNull(oneResult);
-       assertEquals(oneResult.size(), 1);
-       SecurityGroup listPair = oneResult.iterator().next();
-       assertEquals(listPair.getName(), groupName);
-       assertEquals(listPair.getDescription(), description);*/
+        assertNotNull(oneResult);
+        assertEquals(oneResult.size(), 2);
+        Iterator<SecurityGroup> sresult = oneResult.iterator();
+        sresult.next();
+        sresult.remove();
+        SecurityGroup listPair = sresult.next();
+        assertEquals(listPair.getName(), groupName);
+        assertEquals(listPair.getDescription(), description);
     }
 
     @Test
