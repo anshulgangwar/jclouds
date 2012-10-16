@@ -1,28 +1,26 @@
 package org.jclouds.cloudstack.query.ec2.services;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.jclouds.cloudstack.query.ec2.CloudStackQueryEC2ApiMetadata;
-import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
-import org.jclouds.ec2.domain.AvailabilityZoneInfo;
-import org.jclouds.ec2.domain.Snapshot;
-import org.jclouds.ec2.domain.Volume;
+import org.jclouds.ec2.domain.*;
 import org.jclouds.ec2.predicates.SnapshotCompleted;
 import org.jclouds.ec2.predicates.VolumeAvailable;
 import org.jclouds.ec2.services.ElasticBlockStoreClient;
 import org.jclouds.ec2.services.ElasticBlockStoreClientLiveTest;
+import org.jclouds.logging.Logger;
 import org.jclouds.predicates.RetryablePredicate;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import javax.annotation.Resource;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.ec2.options.DescribeSnapshotsOptions.Builder.snapshotIds;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -37,6 +35,9 @@ import static org.testng.Assert.assertNotNull;
 
 @Test(groups = "live", singleThreaded = true, testName = "CloudStackQueryEC2ElasticBlockStoreClientLiveTest")
 public class CloudStackQueryEC2ElasticBlockStoreClientLiveTest extends ElasticBlockStoreClientLiveTest {
+    @Resource
+    protected Logger logger = Logger.NULL;
+
     public CloudStackQueryEC2ElasticBlockStoreClientLiveTest() {
         provider = "cloudstack-query-ec2";
     }
@@ -46,6 +47,9 @@ public class CloudStackQueryEC2ElasticBlockStoreClientLiveTest extends ElasticBl
     private EC2Client ec2Client;
 
     private String defaultZone;
+    protected RetryablePredicate<RunningInstance> runningTester;
+    protected String imageId;
+    protected String instanceId;
 
     private String volumeId;
     private Snapshot snapshot;
@@ -53,6 +57,9 @@ public class CloudStackQueryEC2ElasticBlockStoreClientLiveTest extends ElasticBl
     @Override
     @BeforeClass(groups = {"integration", "live"})
     public void setupContext() {
+        logger.error(" image id mera pehla "+imageId);
+
+
         initializeContext();
         ec2Client = view.unwrap(CloudStackQueryEC2ApiMetadata.CONTEXT_TOKEN).getApi();
         client = ec2Client.getElasticBlockStoreServices();
@@ -62,7 +69,21 @@ public class CloudStackQueryEC2ElasticBlockStoreClientLiveTest extends ElasticBl
         Set<AvailabilityZoneInfo> allResults = ec2Client.getAvailabilityZoneAndRegionServices().describeAvailabilityZonesInRegion(null);
         allResults.iterator().next();
         defaultZone = allResults.iterator().next().getZone();
+        Set<? extends Image> allImageResults = ec2Client.getAMIServices().describeImagesInRegion(null);
+        assertNotNull(allImageResults);
+        assert allImageResults.size() >= 1 : allImageResults.size();
+        Iterator<? extends Image> iterator = allImageResults.iterator();
+        imageId = iterator.next().getId();
+        logger.error(" image id mera "+imageId+ "  " +defaultZone);
+
+
+        if (imageId != null) {
+           // runInstance();
+        }
     }
+
+
+
 
     @Test
     void testDescribeVolumes() {
@@ -94,6 +115,7 @@ public class CloudStackQueryEC2ElasticBlockStoreClientLiveTest extends ElasticBl
         Volume volume = result.iterator().next();
         assertEquals(volume.getId(), expected.getId());
     }
+
 
     @Test(dependsOnMethods = "testCreateVolumeInAvailabilityZone")
     void testCreateSnapshotInRegion() {

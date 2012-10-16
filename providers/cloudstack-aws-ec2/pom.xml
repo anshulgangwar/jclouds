@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+
+    <parent>
+        <artifactId>jclouds-project</artifactId>
+        <groupId>org.jclouds</groupId>
+        <version>1.6.0-SNAPSHOT</version>
+        <relativePath>../../project/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.jclouds.provider</groupId>
+    <artifactId>cloudstack-aws-ec2</artifactId>
+    <name>jclouds CloudStack Amazon EC2 provider</name>
+    <description>EC2 implementation targeted to Amazon Web Services</description>
+    <packaging>bundle</packaging>
+
+    <properties>
+        <test.cloudstack-aws-ec2.endpoint>http://10.102.125.216:7080/awsapi</test.cloudstack-aws-ec2.endpoint>
+        <test.cloudstack-aws-ec2.api-version>2010-11-15</test.cloudstack-aws-ec2.api-version>
+        <test.cloudstack-aws-ec2.build-version></test.cloudstack-aws-ec2.build-version>
+        <test.cloudstack-aws-ec2.identity>Tt357OgwRFuDnOppAuDDZ4Ua-CTTD3LwntUWfZ6mTtk82iq72qoYGOFmYoFCoeb_xs_uodlY3iluyHKLpUQNqA</test.cloudstack-aws-ec2.identity>
+        <test.cloudstack-aws-ec2.credential>UwLt-RpinBTjuzCCQ1sKLDbYjRhRM7s4QxQMq7unEZ_Zp0lhh6qTXCdr_UF0suo5Dm4cJjX5Rm5CaWGVTj2tqg</test.cloudstack-aws-ec2.credential>
+        <test.cloudstack-aws-ec2.template>imageId=AmazonEC2/2913aca6-360a-4531-8ae7-2e9cef4fd172</test.cloudstack-aws-ec2.template>
+        <test.cloudstack-aws-ec2.ebs-template>hardwareId=m1.small,imageId=AmazonEC2/2913aca6-360a-4531-8ae7-2e9cef4fd172</test.cloudstack-aws-ec2.ebs-template>
+        <test.cloudstack-aws-ec2.windows-template>hardwareId=m1.small,imageNameMatches=Windows_Server-2008-R2_SP1-English-64Bit-Base-WinRM-</test.cloudstack-aws-ec2.windows-template>
+        <test.cloudstack-aws-ec2.windows-owner>449550055360</test.cloudstack-aws-ec2.windows-owner>
+        <jclouds.osgi.export>org.jclouds.aws.ec2*;version="${project.version}"</jclouds.osgi.export>
+        <jclouds.osgi.import>
+            org.jclouds.compute.internal;version="${project.version}",
+            org.jclouds.rest.internal;version="${project.version}",
+            org.jclouds.aws;version="${project.version}",
+            org.jclouds.aws*;version="${project.version}",
+            org.jclouds*;version="${project.version}",
+            org.jclouds.aws.ec2.*;version="${project.version}",
+
+            *
+        </jclouds.osgi.import>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jclouds.common</groupId>
+            <artifactId>aws-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.api</groupId>
+            <artifactId>ec2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.provider</groupId>
+            <artifactId>aws-ec2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.api</groupId>
+            <artifactId>ec2</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.provider</groupId>
+            <artifactId>aws-cloudwatch</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds</groupId>
+            <artifactId>jclouds-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds</groupId>
+            <artifactId>jclouds-compute</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.driver</groupId>
+            <artifactId>jclouds-log4j</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.driver</groupId>
+            <artifactId>jclouds-sshj</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.provider</groupId>
+            <artifactId>aws-ec2</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jclouds.provider</groupId>
+            <artifactId>aws-ec2</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.theoryinpractise</groupId>
+                <artifactId>clojure-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>live</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <test.cloudstack-aws-ec2.endpoint>${test.cloudstack-aws-ec2.endpoint}</test.cloudstack-aws-ec2.endpoint>
+                                        <test.cloudstack-aws-ec2.api-version>${test.cloudstack-aws-ec2.api-version}</test.cloudstack-aws-ec2.api-version>
+                                        <test.cloudstack-aws-ec2.build-version>${test.cloudstack-aws-ec2.build-version}</test.cloudstack-aws-ec2.build-version>
+                                        <test.cloudstack-aws-ec2.identity>${test.cloudstack-aws-ec2.identity}</test.cloudstack-aws-ec2.identity>
+                                        <test.cloudstack-aws-ec2.credential>${test.cloudstack-aws-ec2.credential}</test.cloudstack-aws-ec2.credential>
+                                        <test.cloudstack-aws-ec2.template>${test.cloudstack-aws-ec2.template}</test.cloudstack-aws-ec2.template>
+                                        <test.cloudstack-aws-ec2.ebs-template>${test.cloudstack-aws-ec2.ebs-template}</test.cloudstack-aws-ec2.ebs-template>
+                                        <test.cloudstack-aws-ec2.windows-template>${test.cloudstack-aws-ec2.windows-template}</test.cloudstack-aws-ec2.windows-template>
+                                        <test.cloudstack-aws-ec2.windows-owner>${test.cloudstack-aws-ec2.windows-owner}</test.cloudstack-aws-ec2.windows-owner>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

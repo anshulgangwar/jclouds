@@ -1,17 +1,12 @@
 package org.jclouds.cloudstack.query.ec2.services;
 
-import com.google.common.collect.ImmutableMap;
 import org.jclouds.cloudstack.query.ec2.CloudStackQueryEC2ApiMetadata;
-import org.jclouds.compute.RunNodesException;
-import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilderSpec;
-import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
-import org.jclouds.ec2.domain.*;
-import org.jclouds.ec2.predicates.InstanceStateRunning;
+import org.jclouds.ec2.domain.Image;
+import org.jclouds.ec2.domain.RunningInstance;
 import org.jclouds.ec2.services.AMIClient;
 import org.jclouds.ec2.services.AMIClientLiveTest;
-import org.jclouds.logging.BaseLogger;
 import org.jclouds.logging.ConsoleLogger;
 import org.jclouds.logging.Logger;
 import org.jclouds.predicates.RetryablePredicate;
@@ -22,17 +17,12 @@ import org.testng.annotations.Test;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.jclouds.ec2.options.DescribeImagesOptions.Builder.imageIds;
-import static org.jclouds.ec2.options.RegisterImageBackedByEbsOptions.Builder.addNewBlockDevice;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.
@@ -76,12 +66,12 @@ public class CloudStackQueryEC2AMIClientLiveTest extends AMIClientLiveTest {
     @Override
     @BeforeClass(groups = { "integration", "live" })
     public void setupContext() {
-        super.setupContext();
+        initializeContext();
         ec2Client = view.unwrap(CloudStackQueryEC2ApiMetadata.CONTEXT_TOKEN).getApi();
-        runningTester = new RetryablePredicate<RunningInstance>(new InstanceStateRunning(ec2Client), 2400, 5,
-                TimeUnit.SECONDS);
+        /*runningTester = new RetryablePredicate<RunningInstance>(new InstanceStateRunning(ec2Client), 2400, 5,
+                TimeUnit.SECONDS);*/
         client = ec2Client.getAMIServices();
-
+/*
         if (ebsTemplate != null) {
             Template template = view.getComputeService().templateBuilder().from(ebsTemplate).build();
             regionId = null;
@@ -90,7 +80,7 @@ public class CloudStackQueryEC2AMIClientLiveTest extends AMIClientLiveTest {
                 if (ebsBackedImageName.equals(image.getName()))
                     client.deregisterImageInRegion(regionId, image.getId());
             }
-        }
+        }*/
 
     }
 

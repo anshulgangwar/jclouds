@@ -30,9 +30,11 @@ import org.jclouds.ec2.domain.SecurityGroup;
 import org.jclouds.ec2.domain.UserIdGroupPair;
 import org.jclouds.ec2.services.SecurityGroupClient;
 import org.jclouds.ec2.services.SecurityGroupClientLiveTest;
+import org.jclouds.logging.Logger;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import javax.annotation.Resource;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
@@ -45,6 +47,10 @@ import static org.testng.Assert.assertNotNull;
  */
 @Test(groups = "live", singleThreaded = true, testName = "CloudStackQueryEC2SecurityGroupClientLiveTest")
 public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroupClientLiveTest {
+
+    @Resource
+    protected Logger logger = Logger.NULL;
+
     public CloudStackQueryEC2SecurityGroupClientLiveTest() {
         provider = "cloudstack-query-ec2";
     }
@@ -77,21 +83,26 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
     @Test
     void testCreateSecurityGroup() {
         String groupName = PREFIX + "1";
+        logger.error(" sec gr going in cleanup");
         cleanupAndSleep(groupName);
+        logger.error(" sec gr error not in  cleanup");
         try {
-            String groupDescription = PREFIX + "1 description";
+            String groupDescription = PREFIX + "1";
             //client.deleteSecurityGroupInRegion(null, groupName);
             client.createSecurityGroupInRegion(null, groupName, groupDescription);
+            logger.error(" sec gr error in creation");
             verifySecurityGroup(groupName, groupDescription);
         } finally {
+            logger.error(" sec gr error check in deletion");
             client.deleteSecurityGroupInRegion(null, groupName);
+            logger.error(" sec gr error  in deletion");
         }
     }
 
 
     protected void cleanupAndSleep(String groupName) {
         try {
-            client.deleteSecurityGroupInRegion(null, groupName);
+          client.deleteSecurityGroupInRegion(null, groupName);
             Thread.sleep(2000);
         } catch (Exception e) {
 
@@ -131,15 +142,30 @@ public class CloudStackQueryEC2SecurityGroupClientLiveTest extends SecurityGroup
     }
 
     private void verifySecurityGroup(String groupName, String description) {
+        logger.error(" verify error in creation");
         Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null);
+        logger.error(" verify error 2 in creation");
         assertNotNull(oneResult);
+        logger.error(" verify error 3 in creation");
         assertEquals(oneResult.size(), 2);
+        logger.error(" verify error 4 in creation");
         Iterator<SecurityGroup> sresult = oneResult.iterator();
+        logger.error(" verify error 5 in creation " + sresult);
         sresult.next();
+        logger.error(" verify error 6 in creation " + sresult);
+        /*try{
         sresult.remove();
+        } catch (Exception e){
+            logger.error( " remove me exception " + e );
+        }*/
+
+        logger.error(" verify error  7 in creation");
         SecurityGroup listPair = sresult.next();
+        logger.error(" verify error 8 in creation");
         assertEquals(listPair.getName(), groupName);
+        logger.error(" verify error 9 in creation");
         assertEquals(listPair.getDescription(), description);
+        logger.error(" verify error 10 in creation");
     }
 
     @Test

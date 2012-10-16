@@ -2,14 +2,14 @@ package org.jclouds.cloudstack.query.ec2.services;
 
 import com.google.common.collect.Sets;
 import org.jclouds.cloudstack.query.ec2.CloudStackQueryEC2ApiMetadata;
-import org.jclouds.ec2.EC2ApiMetadata;
-import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.KeyPair;
 import org.jclouds.ec2.services.KeyPairClient;
 import org.jclouds.ec2.services.KeyPairClientLiveTest;
+import org.jclouds.logging.Logger;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import javax.annotation.Resource;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -25,6 +25,9 @@ import static org.testng.Assert.assertNotNull;
  */
 @Test(groups = "live", singleThreaded = true, testName = "CloudStackQueryEC2KeyPairClientLiveTest")
 public class CloudStackQueryEC2KeyPairClientLiveTest extends KeyPairClientLiveTest {
+
+    @Resource
+    protected Logger logger = Logger.NULL;
 
 
     private KeyPairClient client;
@@ -62,14 +65,17 @@ public class CloudStackQueryEC2KeyPairClientLiveTest extends KeyPairClientLiveTe
     void testCreateKeyPair() {
         //TODO
         String keyName = PREFIX + "1";
-        try {
+        try {  logger.error(" deleting keypair");
             client.deleteKeyPairInRegion(null, keyName);
+            logger.error(" error in deleting keypair");
         } catch (Exception e) {
 
         }
         //client.deleteKeyPairInRegion(null, keyName);
 
+        logger.error(" creating keypair");
         KeyPair result = client.createKeyPairInRegion(null, keyName);
+        logger.error(" error not in creating keypair");
         assertNotNull(result);
         assertNotNull(result.getKeyMaterial());
         assertNotNull(result.getSha1OfPrivateKey());
@@ -81,6 +87,12 @@ public class CloudStackQueryEC2KeyPairClientLiveTest extends KeyPairClientLiveTe
         KeyPair listPair = twoResults.iterator().next();
         assertEquals(listPair.getKeyName(), result.getKeyName());
         assertEquals(listPair.getSha1OfPrivateKey(), result.getSha1OfPrivateKey());
+        try {
+            client.deleteKeyPairInRegion(null, keyName);
+        } catch (Exception e) {
+
+        }
+
     }
 
 }

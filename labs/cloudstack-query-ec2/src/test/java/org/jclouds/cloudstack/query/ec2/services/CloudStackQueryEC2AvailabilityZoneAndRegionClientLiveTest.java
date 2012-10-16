@@ -33,7 +33,6 @@ public class CloudStackQueryEC2AvailabilityZoneAndRegionClientLiveTest extends A
     @BeforeClass(groups = { "integration", "live" })
     public void setupContext() {
         super.setupContext();
-        super.setupContext();
         client =  (view.unwrap(CloudStackQueryEC2ApiMetadata.CONTEXT_TOKEN).getApi()).getAvailabilityZoneAndRegionServices();
     }
 
