@@ -18,18 +18,19 @@
  */
 package org.jclouds.ec2.predicates;
 
-import javax.annotation.Resource;
-import javax.inject.Singleton;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.inject.Inject;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.domain.InstanceState;
+import org.jclouds.ec2.domain.Reservation;
 import org.jclouds.ec2.domain.RunningInstance;
 import org.jclouds.logging.Logger;
 import org.jclouds.rest.ResourceNotFoundException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.inject.Inject;
+import javax.annotation.Resource;
+import javax.inject.Singleton;
+import java.util.Set;
 
 /**
  * 
@@ -53,7 +54,9 @@ public class InstanceStateRunning implements Predicate<RunningInstance> {
    public boolean apply(RunningInstance instance) {
       logger.trace("looking for state on instance %s", instance);
       try {
+          logger.error(" yahan instance state anshul 4");
          instance = refresh(instance);
+          logger.error(" yahan instance state anshul 3");
          logger.trace("%s: looking for instance state %s: currently: %s",
                instance.getId(), InstanceState.RUNNING, instance
                      .getInstanceState());
@@ -64,8 +67,12 @@ public class InstanceStateRunning implements Predicate<RunningInstance> {
    }
 
    private RunningInstance refresh(RunningInstance instance) {
-      return Iterables.getOnlyElement(Iterables.getOnlyElement(client
-            .getInstanceServices().describeInstancesInRegion(
-                  instance.getRegion(), instance.getId())));
+      logger.error(" yahan instance state anshul 1");
+       Set<? extends Reservation<? extends RunningInstance>> iterable = client
+               .getInstanceServices().describeInstancesInRegion(
+                       instance.getRegion(), instance.getId());
+       logger.error(" yahan instance state anshul 2");
+       return Iterables.getOnlyElement(Iterables.getOnlyElement(iterable));
+
    }
 }

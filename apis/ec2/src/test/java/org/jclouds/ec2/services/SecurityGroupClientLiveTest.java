@@ -18,12 +18,10 @@
  */
 package org.jclouds.ec2.services;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.util.Iterator;
-import java.util.Set;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
@@ -31,13 +29,16 @@ import org.jclouds.ec2.domain.IpPermission;
 import org.jclouds.ec2.domain.IpProtocol;
 import org.jclouds.ec2.domain.SecurityGroup;
 import org.jclouds.ec2.domain.UserIdGroupPair;
+import org.jclouds.logging.Logger;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import javax.annotation.Resource;
+import java.util.Iterator;
+import java.util.Set;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Tests behavior of {@code SecurityGroupClient}
@@ -46,7 +47,11 @@ import com.google.common.collect.Iterables;
  */
 @Test(groups = "live", singleThreaded = true, testName = "SecurityGroupClientLiveTest")
 public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTest {
-   public SecurityGroupClientLiveTest() {
+
+    @Resource
+    protected Logger logger = Logger.NULL;
+
+    public SecurityGroupClientLiveTest() {
       provider = "ec2";
    }
 
@@ -79,14 +84,18 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    @Test
    void testCreateSecurityGroup() {
       String groupName = PREFIX + "1";
+       logger.error(" cleaning securtiy group error 1");
       cleanupAndSleep(groupName);
-      try {
-         String groupDescription = PREFIX + "1 description";
+      try {  logger.error(" cleaning securtiy group error 2");
+         String groupDescription = PREFIX + "1";
          //client.deleteSecurityGroupInRegion(null, groupName);
          client.createSecurityGroupInRegion(null, groupName, groupDescription);
+          logger.error(" cleaning securtiy group error 3");
          verifySecurityGroup(groupName, groupDescription);
       } finally {
+          logger.error(" cleaning securtiy group error 4");
          client.deleteSecurityGroupInRegion(null, groupName);
+          logger.error(" cleaning securtiy group error 5");
       }
    }
 
@@ -137,7 +146,6 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
       assertEquals(oneResult.size(), 2);
       Iterator<SecurityGroup> sresult = oneResult.iterator();
       sresult.next();
-      sresult.remove();
       SecurityGroup listPair = sresult.next();
       assertEquals(listPair.getName(), groupName);
       assertEquals(listPair.getDescription(), description);

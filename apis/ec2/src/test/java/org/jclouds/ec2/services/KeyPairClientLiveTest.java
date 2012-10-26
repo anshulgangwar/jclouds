@@ -18,12 +18,7 @@
  */
 package org.jclouds.ec2.services;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.util.Set;
-import java.util.SortedSet;
-
+import com.google.common.collect.Sets;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
@@ -31,69 +26,77 @@ import org.jclouds.ec2.domain.KeyPair;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+import java.util.SortedSet;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Tests behavior of {@code KeyPairClient}
- * 
+ *
  * @author Adrian Cole
  */
 @Test(groups = "live", singleThreaded = true, testName = "KeyPairClientLiveTest")
 public class KeyPairClientLiveTest extends BaseComputeServiceContextLiveTest {
-   public KeyPairClientLiveTest() {
-      provider = "ec2";
-   }
+    private String region = "AmazonEC2";
 
-   private EC2Client ec2Client;
-   private KeyPairClient client;
-   
-   @Override
-   @BeforeClass(groups = { "integration", "live" })
-   public void setupContext() {
-      super.setupContext();
-      ec2Client = view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
-      client = ec2Client.getKeyPairServices();
-   }
+    public KeyPairClientLiveTest() {
+        provider = "ec2";
+    }
 
-   @Test
-   void testDescribeKeyPairs() {
-      for (String region : ec2Client.getConfiguredRegions()) {
-         SortedSet<KeyPair> allResults = Sets.newTreeSet(client.describeKeyPairsInRegion(region));
-         assertNotNull(allResults);
-         if (allResults.size() >= 1) {
+    private EC2Client ec2Client;
+    private KeyPairClient client;
+
+    @Override
+    @BeforeClass(groups = {"integration", "live"})
+    public void setupContext() {
+        super.setupContext();
+        ec2Client = view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        client = ec2Client.getKeyPairServices();
+    }
+
+    @Test
+    void testDescribeKeyPairs() {
+        SortedSet<KeyPair> allResults = Sets.newTreeSet(client.describeKeyPairsInRegion(region));
+        assertNotNull(allResults);
+        if (allResults.size() >= 1) {
             KeyPair pair = allResults.last();
             SortedSet<KeyPair> result = Sets.newTreeSet(client.describeKeyPairsInRegion(region, pair.getKeyName()));
             assertNotNull(result);
             KeyPair compare = result.last();
             assertEquals(compare, pair);
-         }
-      }
-   }
+        }
+    }
 
-   public static final String PREFIX = System.getProperty("user.name") + "-ec2";
+    public static final String PREFIX = System.getProperty("user.name") + "-ec2";
 
-   @Test
-   void testCreateKeyPair() {
-      String keyName = PREFIX + "1";
-      try {
-         client.deleteKeyPairInRegion(null, keyName);
-      } catch (Exception e) {
+    @Test
+    void testCreateKeyPair() {
+        String keyName = PREFIX + "1";
+        cleanUpKeyPair(keyName);
 
-      }
-      //client.deleteKeyPairInRegion(null, keyName);
+        KeyPair result = client.createKeyPairInRegion(null, keyName);
+        assertNotNull(result);
+        assertNotNull(result.getKeyMaterial());
+        assertNotNull(result.getSha1OfPrivateKey());
+        assertEquals(result.getKeyName(), keyName);
 
-      KeyPair result = client.createKeyPairInRegion(null, keyName);
-      assertNotNull(result);
-      assertNotNull(result.getKeyMaterial());
-      assertNotNull(result.getSha1OfPrivateKey());
-      assertEquals(result.getKeyName(), keyName);
+        Set<KeyPair> twoResults = Sets.newLinkedHashSet(client.describeKeyPairsInRegion(null, keyName));
+        assertNotNull(twoResults);
+        assertEquals(twoResults.size(), 1);
+        KeyPair listPair = twoResults.iterator().next();
+        assertEquals(listPair.getKeyName(), result.getKeyName());
+        assertEquals(listPair.getSha1OfPrivateKey(), result.getSha1OfPrivateKey());
+        cleanUpKeyPair(keyName);
+    }
 
-      Set<KeyPair> twoResults = Sets.newLinkedHashSet(client.describeKeyPairsInRegion(null, keyName));
-      assertNotNull(twoResults);
-      assertEquals(twoResults.size(), 1);
-      KeyPair listPair = twoResults.iterator().next();
-      assertEquals(listPair.getKeyName(), result.getKeyName());
-      assertEquals(listPair.getSha1OfPrivateKey(), result.getSha1OfPrivateKey());
-   }
+    private void cleanUpKeyPair(String keyName) {
+        try {
+            client.deleteKeyPairInRegion(null, keyName);
+        } catch (Exception e) {
+
+        }
+    }
 
 }

@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.compute;
 
 import static org.testng.Assert.assertEquals;
@@ -67,11 +68,13 @@ import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Module;
 
+*/
 /**
  * 
  * @author Adrian Cole
- */
-@Test(groups = "live", singleThreaded = true)
+ *//*
+
+//@Test(groups = "live", singleThreaded = true)
 public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
 
    protected TemplateBuilderSpec ebsTemplate;
@@ -93,7 +96,7 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
    }
    
 
-   @Test(enabled = true, dependsOnMethods = "testCorrectAuthException")
+  // @Test(enabled = true, dependsOnMethods = "testCorrectAuthException")
    public void testImagesResolveCorrectly() {
       Template defaultTemplate = client.templateBuilder().build();
       assertEquals(defaultTemplate.getImage().getId(), defaultTemplate.getImage().getLocation().getId() + "/"
@@ -102,7 +105,7 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       assertEquals(byId.getImage(), defaultTemplate.getImage());
    }
 
-   @Test(enabled = true, dependsOnMethods = "testCompareSizes")
+  // @Test(enabled = true, dependsOnMethods = "testCompareSizes")
    public void testExtendedOptionsAndLogin() throws Exception {
       SecurityGroupClient securityGroupClient = EC2Client.class.cast(view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi())
                .getSecurityGroupServices();
@@ -175,7 +178,7 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       }
    }
 
-   @Test(enabled = true) //, dependsOnMethods = "testCompareSizes")
+   //@Test(enabled = true) //, dependsOnMethods = "testCompareSizes")
    public void testAutoIpAllocation() throws Exception {
       ComputeServiceContext context = null;
       String group = this.group + "aip";
@@ -238,10 +241,12 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       return overrides;
    }
 
-   /**
+   */
+/**
     * Note we cannot use the micro size as it has no ephemeral space.
-    */
-   @Test
+    *//*
+
+   //@Test
    public void testMapEBS() throws Exception {
       if (ebsTemplate == null) {
          throw new SkipException("Test cannot run without the parameter test." + provider
@@ -313,11 +318,13 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       }
    }
 
-   /**
+   */
+/**
     * Gets the instance with the given ID from the default region
     * 
     * @throws NoSuchElementException If no instance with that id exists, or the instance is in a different region
-    */
+    *//*
+
    public static RunningInstance getInstance(InstanceClient instanceClient, String id) {
       RunningInstance instance = Iterables.getOnlyElement(Iterables.getOnlyElement(instanceClient
                .describeInstancesInRegion(null, id)));
@@ -346,3 +353,4 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
    }
 
 }
+*/

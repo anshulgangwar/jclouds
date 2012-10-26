@@ -18,22 +18,18 @@
  */
 package org.jclouds.ec2.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
+import com.google.common.collect.*;
+import org.jclouds.javax.annotation.Nullable;
+import org.jclouds.logging.Logger;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-import org.jclouds.javax.annotation.Nullable;
-
-import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * 
@@ -223,6 +219,9 @@ public class RunningInstance implements Comparable<RunningInstance> {
 
    }
 
+    @Resource
+    protected Logger logger = Logger.NULL;
+
    protected final String region;
    protected final Set<String> groupNames;
    protected final String amiLaunchIndex;
@@ -268,7 +267,8 @@ public class RunningInstance implements Comparable<RunningInstance> {
       this.amiLaunchIndex = amiLaunchIndex; // nullable on runinstances.
       this.dnsName = dnsName; // nullable on runinstances.
       this.imageId = imageId; // nullable on runinstances.
-      this.instanceId = checkNotNull(instanceId, "instanceId");
+       logger.error(" instance id kaise " + instanceId +"  hai ");
+      this.instanceId = checkNotNull(instanceId, "running instance + instanceId");
       this.instanceState = checkNotNull(instanceState, "instanceState for %s/%s", region, instanceId);
       this.rawState = checkNotNull(rawState, "rawState for %s/%s", region, instanceId);
       this.instanceType = checkNotNull(instanceType, "instanceType for %s/%s", region, instanceId);

@@ -24,6 +24,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -36,6 +37,7 @@ import org.jclouds.compute.domain.internal.TemplateBuilderImpl;
 import org.jclouds.compute.options.TemplateOptions;
 import org.jclouds.domain.Location;
 import org.jclouds.ec2.compute.domain.RegionAndName;
+import org.jclouds.logging.Logger;
 import org.jclouds.util.Throwables2;
 
 import com.google.common.base.Supplier;
@@ -49,7 +51,8 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
  * @author Adrian Cole
  */
 public class EC2TemplateBuilderImpl extends TemplateBuilderImpl {
-
+    @Resource
+    protected Logger logger = Logger.NULL;
    private final Supplier<LoadingCache<RegionAndName, ? extends Image>> lazyImageCache;
 
    @Inject
@@ -73,14 +76,16 @@ public class EC2TemplateBuilderImpl extends TemplateBuilderImpl {
             try {
                return lazyImageCache.get().get(key);
             } catch (ExecutionException e) {
-               throw new NoSuchElementException(String.format("could not get imageId(%s/%s)", key.getRegion(), key.getName()));
+               logger.error(" execution exception se not image ");
+               throw new NoSuchElementException(String.format("could not get imageId(%s/%s) as ExecutionException ", key.getRegion(), key.getName()));
             } catch (UncheckedExecutionException e) {
                // Primarily for testing: if cache is backed by a map, can get IllegalArgumentException instead of NPE
                IllegalArgumentException e2 = Throwables2.getFirstThrowableOfType(e, IllegalArgumentException.class);
                if (e2 != null && e2.getMessage() != null && e2.getMessage().contains("not present in")) {
                   throw new NoSuchElementException(String.format("imageId(%s/%s) not found", key.getRegion(), key.getName()));
                }
-               throw new NoSuchElementException(String.format("could not get imageId(%s/%s)", key.getRegion(), key.getName()));
+                logger.error(" unchecked execution exception se not image ");
+                throw new NoSuchElementException(String.format("could not get imageId(%s/%s)", key.getRegion(), key.getName()));
             } catch (CacheLoader.InvalidCacheLoadException nex) {
                throw new NoSuchElementException(String.format("imageId(%s/%s) not found", key.getRegion(), key.getName()));
             }

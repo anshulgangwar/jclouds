@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.xml;
 
 import static org.testng.Assert.assertEquals;
@@ -47,11 +48,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 
+*/
 /**
  * Tests behavior of {@code DescribeInstancesResponseHandler}
- * 
+ *
  * @author Adrian Cole
- */
+ *//*
+
 // NOTE:without testName, this will not call @Before* and fail w/NPE during surefire
 @Test(groups = "unit", testName = "DescribeInstancesResponseHandlerTest")
 public class DescribeInstancesResponseHandlerTest extends BaseEC2HandlerTest {
@@ -171,3 +174,4 @@ public class DescribeInstancesResponseHandlerTest extends BaseEC2HandlerTest {
       return createParser().parse(is);
    }
 }
+*/

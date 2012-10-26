@@ -18,17 +18,16 @@
  */
 package org.jclouds.ec2.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Set;
-
-import org.jclouds.javax.annotation.Nullable;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import org.jclouds.javax.annotation.Nullable;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * 
@@ -142,7 +141,7 @@ public class Reservation<T extends RunningInstance> extends ForwardingSet<T> imp
 
    public Reservation(String region, Iterable<String> groupNames, Iterable<T> instances, @Nullable String ownerId,
             @Nullable String requesterId, @Nullable String reservationId) {
-      this.region = checkNotNull(region, "region");
+      this.region = region;
       this.groupNames = ImmutableSet.copyOf(checkNotNull(groupNames, "groupNames"));
       this.instances = ImmutableSet.copyOf(checkNotNull(instances, "instances"));
       this.ownerId = ownerId;

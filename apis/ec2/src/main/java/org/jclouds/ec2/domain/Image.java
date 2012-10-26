@@ -18,16 +18,17 @@
  */
 package org.jclouds.ec2.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-import java.util.Set;
-
-import org.jclouds.javax.annotation.Nullable;
-
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.jclouds.javax.annotation.Nullable;
+import org.jclouds.logging.Logger;
+
+import javax.annotation.Resource;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * 
@@ -36,7 +37,8 @@ import com.google.common.collect.Sets;
  * @author Adrian Cole
  */
 public class Image implements Comparable<Image> {
-
+    @Resource
+    protected Logger logger = Logger.NULL;
    private final String region;
    private final Architecture architecture;
    @Nullable
@@ -79,8 +81,9 @@ public class Image implements Comparable<Image> {
             @Nullable String platform, @Nullable String ramdiskId, RootDeviceType rootDeviceType,
             @Nullable String rootDeviceName, Map<String, EbsBlockDevice> ebsBlockDevices,
             VirtualizationType virtualizationType, Hypervisor hypervisor) {
-      this.region = checkNotNull(region, "region");
+      this.region = region;
       this.architecture = architecture;
+      logger.error(" yeh image id kaise "+imageId);
       this.imageId = checkNotNull(imageId, "imageId");
       this.name = name;
       this.description = description;

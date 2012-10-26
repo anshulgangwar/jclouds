@@ -18,212 +18,262 @@
  */
 package org.jclouds.ec2.services;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.jclouds.ec2.options.DescribeSnapshotsOptions.Builder.snapshotIds;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
-import org.jclouds.ec2.domain.AvailabilityZoneInfo;
-import org.jclouds.ec2.domain.Snapshot;
-import org.jclouds.ec2.domain.Volume;
+import org.jclouds.ec2.domain.*;
+import org.jclouds.ec2.predicates.InstanceStateRunning;
 import org.jclouds.ec2.predicates.SnapshotCompleted;
 import org.jclouds.ec2.predicates.VolumeAvailable;
+import org.jclouds.logging.Logger;
 import org.jclouds.predicates.RetryablePredicate;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import javax.annotation.Resource;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static org.jclouds.ec2.options.DescribeSnapshotsOptions.Builder.snapshotIds;
+import static org.testng.Assert.*;
 
 /**
  * Tests behavior of {@code ElasticBlockStoreClient}
- * 
+ *
  * @author Adrian Cole
  */
 @Test(groups = "live", singleThreaded = true, testName = "ElasticBlockStoreClientLiveTest")
 public class ElasticBlockStoreClientLiveTest extends BaseComputeServiceContextLiveTest {
-   public ElasticBlockStoreClientLiveTest() {
-      provider = "ec2";
-   }
+    @Resource
+    protected Logger logger = Logger.NULL;
+    private RetryablePredicate<RunningInstance> runningTester;
+    private String instanceId = null;
+    private String regionId = "AmazonEC2";
+    private RunningInstance instance;
 
-   private EC2Client ec2Client;
-   private ElasticBlockStoreClient client;
+    public ElasticBlockStoreClientLiveTest() {
+        provider = "ec2";
+    }
 
-   private String defaultRegion;
-   private String defaultZone;
+    private EC2Client ec2Client;
+    private ElasticBlockStoreClient client;
 
-   private String volumeId;
-   private Snapshot snapshot;
+    private String defaultRegion;
+    private String defaultZone;
 
-   @Override
-   @BeforeClass(groups = { "integration", "live" })
-   public void setupContext() {
-      super.setupContext();
-      ec2Client = view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
-      client = ec2Client.getElasticBlockStoreServices();
-      AvailabilityZoneInfo info = Iterables.get(ec2Client.getAvailabilityZoneAndRegionServices()
-            .describeAvailabilityZonesInRegion(defaultRegion), 0);
-      defaultRegion = checkNotNull(Strings.emptyToNull(info.getRegion()), "region of " + info);
-      defaultZone = checkNotNull(Strings.emptyToNull(info.getZone()), "zone of " + info);
-   }
+    protected String imageId;
+    private String volumeId;
+    private Snapshot snapshot;
 
-   @Test
-   void testDescribeVolumes() {
-      for (String region : ec2Client.getConfiguredRegions()) {
-         SortedSet<Volume> allResults = Sets.newTreeSet(client.describeVolumesInRegion(region));
-         assertNotNull(allResults);
-         if (allResults.size() >= 1) {
-            Volume volume = allResults.last();
-            SortedSet<Volume> result = Sets.newTreeSet(client.describeVolumesInRegion(region, volume.getId()));
-            assertNotNull(result);
-            Volume compare = result.last();
-            assertEquals(compare, volume);
-         }
-      }
-   }
+    @Override
+    @BeforeClass(groups = {"integration", "live"})
+    public void setupContext() {
+        super.setupContext();
+        ec2Client = view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
+        runningTester = new RetryablePredicate<RunningInstance>(new InstanceStateRunning(ec2Client), 600, 5,
+                TimeUnit.SECONDS);
+        client = ec2Client.getElasticBlockStoreServices();
+        Set<AvailabilityZoneInfo> allResults = ec2Client.getAvailabilityZoneAndRegionServices().describeAvailabilityZonesInRegion(null);
+        allResults.iterator().next();
+        defaultZone = allResults.iterator().next().getZone();
+        Set<? extends Image> allImageResults = ec2Client.getAMIServices().describeImagesInRegion(null);
+        assertNotNull(allImageResults);
+        assert allImageResults.size() >= 1 : allImageResults.size();
+        Iterator<? extends Image> iterator = allImageResults.iterator();
+        imageId = iterator.next().getId();
+        if (imageId != null) {
+            runInstance();
+        }
+    }
 
-   @Test
-   void testCreateVolumeInAvailabilityZone() {
-      Volume expected = client.createVolumeInAvailabilityZone(defaultZone, 1);
-      assertNotNull(expected);
-      assertEquals(expected.getAvailabilityZone(), defaultZone);
 
-      this.volumeId = expected.getId();
+    private void runInstance() {
+       /* try {*/
+            logger.error(" snapshot error anshul 21");
+            Reservation<? extends RunningInstance> runningInstances = ec2Client.getInstanceServices().runInstancesInRegion(
+                    regionId, null, imageId, 1, 1);
+            logger.error(" snapshot error anshul 22 " + runningInstances);
+            instance = getOnlyElement(concat(runningInstances));
+            logger.error(" snapshot error anshul 23");
+            instanceId = instance.getId();
+            logger.error(" snapshot error anshul 3");
+            assertTrue(runningTester.apply(instance), instanceId + "didn't achieve the state running!");
+            logger.error(" snapshot error anshul 4");
 
-      Set<Volume> result = Sets.newLinkedHashSet(client.describeVolumesInRegion(defaultRegion, expected.getId()));
-      assertNotNull(result);
-      assertEquals(result.size(), 1);
-      Volume volume = result.iterator().next();
-      assertEquals(volume.getId(), expected.getId());
-   }
 
-   @Test(dependsOnMethods = "testCreateVolumeInAvailabilityZone")
-   void testCreateSnapshotInRegion() {
-      Snapshot snapshot = client.createSnapshotInRegion(defaultRegion, volumeId);
-      Predicate<Snapshot> snapshotted = new RetryablePredicate<Snapshot>(new SnapshotCompleted(client), 600, 10,
-            TimeUnit.SECONDS);
-      assert snapshotted.apply(snapshot);
+            instance = (RunningInstance) (getOnlyElement(concat(ec2Client.getInstanceServices().describeInstancesInRegion(regionId,
+                    instanceId))));
+        /*} catch (Exception e) {
+            if (instanceId != null) {
+                ec2Client.getInstanceServices().terminateInstancesInRegion(regionId, instanceId);
+            }
+        }*/
+    }
 
-      Snapshot result = Iterables.getOnlyElement(client.describeSnapshotsInRegion(snapshot.getRegion(),
-            snapshotIds(snapshot.getId())));
+    @Test
+    void testDescribeVolumes() {
+        for (String region : ec2Client.getConfiguredRegions()) {
+            SortedSet<Volume> allResults = Sets.newTreeSet(client.describeVolumesInRegion(region));
+            assertNotNull(allResults);
+            if (allResults.size() >= 1) {
+                Volume volume = allResults.last();
+                SortedSet<Volume> result = Sets.newTreeSet(client.describeVolumesInRegion(region, volume.getId()));
+                assertNotNull(result);
+                Volume compare = result.last();
+                assertEquals(compare, volume);
+            }
+        }
+    }
 
-      assertEquals(result.getProgress(), 100);
-      this.snapshot = result;
-   }
+    @Test
+    void testCreateVolumeInAvailabilityZone() {
+        Volume expected = client.createVolumeInAvailabilityZone(defaultZone, 1);
+        assertNotNull(expected);
+        assertEquals(expected.getAvailabilityZone(), defaultZone);
 
-   @Test(dependsOnMethods = "testCreateSnapshotInRegion")
-   void testCreateVolumeFromSnapshotInAvailabilityZone() {
-      Volume volume = client.createVolumeFromSnapshotInAvailabilityZone(defaultZone, snapshot.getId());
-      assertNotNull(volume);
+        this.volumeId = expected.getId();
 
-      Predicate<Volume> availabile = new RetryablePredicate<Volume>(new VolumeAvailable(client), 600, 10,
-            TimeUnit.SECONDS);
-      assert availabile.apply(volume);
+        Set<Volume> result = Sets.newLinkedHashSet(client.describeVolumesInRegion(defaultRegion, expected.getId()));
+        assertNotNull(result);
+        logger.error(" result me kya hai " + result);
+        assertEquals(result.size(), 1);
+        Volume volume = result.iterator().next();
+        assertEquals(volume.getId(), expected.getId());
+    }
 
-      Volume result = Iterables.getOnlyElement(client.describeVolumesInRegion(snapshot.getRegion(), volume.getId()));
-      assertEquals(volume.getId(), result.getId());
-      assertEquals(volume.getSnapshotId(), snapshot.getId());
-      assertEquals(volume.getAvailabilityZone(), defaultZone);
-      assertEquals(result.getStatus(), Volume.Status.AVAILABLE);
+    @Test(dependsOnMethods = "testAttachVolumeInRegion")
+    void testCreateSnapshotInRegion() {
+        Snapshot snapshot = client.createSnapshotInRegion(defaultRegion, volumeId);
+        Predicate<Snapshot> snapshotted = new RetryablePredicate<Snapshot>(new SnapshotCompleted(client), 600, 10,
+                TimeUnit.SECONDS);
+        assert snapshotted.apply(snapshot);
 
-      client.deleteVolumeInRegion(snapshot.getRegion(), volume.getId());
-   }
+        Snapshot result = Iterables.getOnlyElement(client.describeSnapshotsInRegion(snapshot.getRegion(),
+                snapshotIds(snapshot.getId())));
 
-   @Test(dependsOnMethods = "testCreateSnapshotInRegion")
-   void testCreateVolumeFromSnapshotInAvailabilityZoneWithSize() {
-      Volume volume = client.createVolumeFromSnapshotInAvailabilityZone(defaultZone, 2, snapshot.getId());
-      assertNotNull(volume);
+        assertEquals(result.getProgress(), 100);
+        this.snapshot = result;
+    }
 
-      Predicate<Volume> availabile = new RetryablePredicate<Volume>(new VolumeAvailable(client), 600, 10,
-            TimeUnit.SECONDS);
-      assert availabile.apply(volume);
+    @Test(dependsOnMethods = "testCreateSnapshotInRegion")
+    void testCreateVolumeFromSnapshotInAvailabilityZone() {
+        Volume volume = client.createVolumeFromSnapshotInAvailabilityZone(defaultZone, snapshot.getId());
+        assertNotNull(volume);
 
-      Volume result = Iterables.getOnlyElement(client.describeVolumesInRegion(snapshot.getRegion(), volume.getId()));
-      assertEquals(volume.getId(), result.getId());
-      assertEquals(volume.getSnapshotId(), snapshot.getId());
-      assertEquals(volume.getAvailabilityZone(), defaultZone);
-      assertEquals(volume.getSize(), 2);
-      assertEquals(result.getStatus(), Volume.Status.AVAILABLE);
+        Predicate<Volume> availabile = new RetryablePredicate<Volume>(new VolumeAvailable(client), 600, 10,
+                TimeUnit.SECONDS);
+        assert availabile.apply(volume);
 
-      client.deleteVolumeInRegion(snapshot.getRegion(), volume.getId());
-   }
+        Volume result = Iterables.getOnlyElement(client.describeVolumesInRegion(snapshot.getRegion(), volume.getId()));
+        assertEquals(volume.getId(), result.getId());
+        //assertEquals(volume.getSnapshotId(), snapshot.getId());
+        //assertEquals(volume.getAvailabilityZone(), defaultZone);
+        //assertEquals(result.getStatus(), Volume.Status.AVAILABLE);
 
-   @Test
-   void testAttachVolumeInRegion() {
-      // TODO: need an instance
-   }
+        client.deleteVolumeInRegion(snapshot.getRegion(), volume.getId());
+    }
 
-   @Test
-   void testDetachVolumeInRegion() {
-      // TODO: need an instance
-   }
+    /*@Test(dependsOnMethods = "testCreateSnapshotInRegion")
+    void testCreateVolumeFromSnapshotInAvailabilityZoneWithSize() {
+        Volume volume = client.createVolumeFromSnapshotInAvailabilityZone(defaultZone, 2, snapshot.getId());
+        assertNotNull(volume);
 
-   @Test
-   void testDescribeSnapshots() {
-      for (String region : ec2Client.getConfiguredRegions()) {
-         SortedSet<Snapshot> allResults = Sets.newTreeSet(client.describeSnapshotsInRegion(region));
-         assertNotNull(allResults);
-         if (allResults.size() >= 1) {
-            Snapshot snapshot = allResults.last();
-            Snapshot result = Iterables.getOnlyElement(client.describeSnapshotsInRegion(region,
-                  snapshotIds(snapshot.getId())));
-            assertNotNull(result);
-            assertEquals(result, snapshot);
-         }
-      }
-   }
+        Predicate<Volume> availabile = new RetryablePredicate<Volume>(new VolumeAvailable(client), 600, 10,
+                TimeUnit.SECONDS);
+        assert availabile.apply(volume);
 
-   @Test(enabled = false)
-   public void testAddCreateVolumePermissionsToSnapshot() {
-      // TODO client.addCreateVolumePermissionsToSnapshotInRegion(defaultRegion,
-      // userIds,
-      // userGroups,
-      // snapshotId);
-   }
+        Volume result = Iterables.getOnlyElement(client.describeVolumesInRegion(snapshot.getRegion(), volume.getId()));
+        assertEquals(volume.getId(), result.getId());
+        //assertEquals(volume.getSnapshotId(), snapshot.getId());
+        assertEquals(volume.getAvailabilityZone(), defaultZone);
+        assertEquals(volume.getSize(), 2);
+        //assertEquals(result.getStatus(), Volume.Status.AVAILABLE);
 
-   @Test(enabled = false)
-   public void testRemoveCreateVolumePermissionsFromSnapshot() {
-      // TODO
-      // client.removeCreateVolumePermissionsFromSnapshotInRegion(defaultRegion,
-      // userIds,
-      // userGroups,
-      // snapshotId);
-   }
+        client.deleteVolumeInRegion(snapshot.getRegion(), volume.getId());
+    }*/
 
-   @Test(enabled = false)
-   public void testResetCreateVolumePermissionsOnSnapshot() {
-      // TODO
-      // client.resetCreateVolumePermissionsOnSnapshotInRegion(defaultRegion,
-      // snapshotId);
-   }
+    @Test(dependsOnMethods = "testCreateVolumeInAvailabilityZone")
+    void testAttachVolumeInRegion() {
+        logger.error(" volumeid kya hai idhar  " + volumeId);
+        client.attachVolumeInRegion(regionId, volumeId, instanceId, "/dev/sdh");
+    }
 
-   @Test(dependsOnMethods = "testCreateSnapshotInRegion")
-   public void testGetCreateVolumePermissionForSnapshot() {
-      client.getCreateVolumePermissionForSnapshotInRegion(snapshot.getRegion(), snapshot.getId());
-   }
+    @Test(dependsOnMethods = "testCreateVolumeFromSnapshotInAvailabilityZone")
+    void testDetachVolumeInRegion() {
+        client.detachVolumeInRegion(regionId, volumeId, false);
+    }
 
-   @Test(dependsOnMethods = "testCreateSnapshotInRegion")
-   void testDeleteVolumeInRegion() {
-      client.deleteVolumeInRegion(defaultRegion, volumeId);
-      Set<Volume> result = Sets.newLinkedHashSet(client.describeVolumesInRegion(defaultRegion, volumeId));
-      assertEquals(result.size(), 1);
-      Volume volume = result.iterator().next();
-      assertEquals(volume.getStatus(), Volume.Status.DELETING);
-   }
+    @Test
+    void testDescribeSnapshots() {
+        for (String region : ec2Client.getConfiguredRegions()) {
+            SortedSet<Snapshot> allResults = Sets.newTreeSet(client.describeSnapshotsInRegion(region));
+            assertNotNull(allResults);
+            if (allResults.size() >= 1) {
+                Snapshot snapshot = allResults.last();
+                Snapshot result = Iterables.getOnlyElement(client.describeSnapshotsInRegion(region,
+                        snapshotIds(snapshot.getId())));
+                assertNotNull(result);
+                assertEquals(result, snapshot);
+            }
+        }
+    }
 
-   @Test(dependsOnMethods = "testGetCreateVolumePermissionForSnapshot")
-   void testDeleteSnapshotInRegion() {
-      client.deleteSnapshotInRegion(snapshot.getRegion(), snapshot.getId());
-      assert client.describeSnapshotsInRegion(snapshot.getRegion(), snapshotIds(snapshot.getId())).size() == 0;
-   }
+    /*@Test(enabled = false)
+    public void testAddCreateVolumePermissionsToSnapshot() {
+        // TODO client.addCreateVolumePermissionsToSnapshotInRegion(defaultRegion,
+        // userIds,
+        // userGroups,
+        // snapshotId);
+    }*/
+
+    /*@Test(enabled = false)
+    public void testRemoveCreateVolumePermissionsFromSnapshot() {
+        // TODO
+        // client.removeCreateVolumePermissionsFromSnapshotInRegion(defaultRegion,
+        // userIds,
+        // userGroups,
+        // snapshotId);
+    }*/
+
+    /*@Test(enabled = false)
+    public void testResetCreateVolumePermissionsOnSnapshot() {
+        // TODO
+        // client.resetCreateVolumePermissionsOnSnapshotInRegion(defaultRegion,
+        // snapshotId);
+    }*/
+
+    /*@Test(dependsOnMethods = "testCreateSnapshotInRegion")
+    public void testGetCreateVolumePermissionForSnapshot() {
+        client.getCreateVolumePermissionForSnapshotInRegion(snapshot.getRegion(), snapshot.getId());
+    }*/
+
+    @Test(dependsOnMethods = "testDetachVolumeInRegion")
+    void testDeleteVolumeInRegion() {
+        client.deleteVolumeInRegion(defaultRegion, volumeId);
+        /*Set<Volume> result = Sets.newLinkedHashSet(client.describeVolumesInRegion(defaultRegion, volumeId));
+        assertEquals(result.size(), 1);
+        Volume volume = result.iterator().next();
+        assertEquals(volume.getStatus(), Volume.Status.DELETING);*/
+    }
+
+    @Test(dependsOnMethods = "testDeleteVolumeInRegion")
+    void testTerminateInstance() {
+        if (instanceId != null) {
+            ec2Client.getInstanceServices().terminateInstancesInRegion(regionId, instanceId);
+        }
+    }
+
+    @Test(dependsOnMethods = "testCreateVolumeFromSnapshotInAvailabilityZone")
+    void testDeleteSnapshotInRegion() {
+        client.deleteSnapshotInRegion(snapshot.getRegion(), snapshot.getId());
+        assert client.describeSnapshotsInRegion(snapshot.getRegion(), snapshotIds(snapshot.getId())).size() == 0;
+    }
 
 }

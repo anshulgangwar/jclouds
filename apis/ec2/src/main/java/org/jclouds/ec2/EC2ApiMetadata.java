@@ -18,16 +18,9 @@
  */
 package org.jclouds.ec2;
 
-import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
-import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
-import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT;
-
-import java.net.URI;
-import java.util.Properties;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Module;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.ec2.compute.EC2ComputeServiceContext;
 import org.jclouds.ec2.compute.config.EC2ComputeServiceContextModule;
@@ -36,9 +29,13 @@ import org.jclouds.ec2.config.EC2RestClientModule;
 import org.jclouds.rest.RestContext;
 import org.jclouds.rest.internal.BaseRestApiMetadata;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Module;
+import java.net.URI;
+import java.util.Properties;
+
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
+import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
+import static org.jclouds.ec2.reference.EC2Constants.*;
 
 /**
  * Implementation of {@link ApiMetadata} for Amazon's EC2 api.
@@ -58,6 +55,7 @@ import com.google.inject.Module;
  * @author Adrian Cole
  */
 public class EC2ApiMetadata extends BaseRestApiMetadata {
+
 
    /** The serialVersionUID */
    private static final long serialVersionUID = 4424763314988423886L;

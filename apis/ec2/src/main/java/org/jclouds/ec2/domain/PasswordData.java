@@ -94,7 +94,7 @@ public class PasswordData {
    protected final String passwordData;
 
    protected PasswordData(String instanceId, Date timestamp, String passwordData) {
-      this.instanceId = checkNotNull(instanceId, "instanceId");
+      this.instanceId = checkNotNull(instanceId, "instanceId + password");
       this.timestamp = checkNotNull(timestamp, "timestamp");
       this.passwordData = checkNotNull(passwordData, "passwordData");
    }

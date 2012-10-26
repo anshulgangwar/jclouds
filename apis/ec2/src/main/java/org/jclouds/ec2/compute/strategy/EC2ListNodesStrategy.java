@@ -107,7 +107,7 @@ public class EC2ListNodesStrategy implements ListNodesStrategy {
 
                }, executor, maxTime, logger, "reservations");
 
-      return concat(concat(reservations));
+      return (Iterable<? extends RunningInstance>) concat(concat(reservations));
    }
 
    @SuppressWarnings("unchecked")

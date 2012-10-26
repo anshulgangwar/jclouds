@@ -116,7 +116,7 @@ public class BundleTask implements Comparable<BundleTask> {
       this.region = checkNotNull(region, "region");
       this.bundleId = checkNotNull(bundleId, "bundleId");
       this.error = error;
-      this.instanceId = checkNotNull(instanceId, "instanceId");
+      this.instanceId = checkNotNull(instanceId, "instanceId + bundle");
       this.progress = checkNotNull(progress, "progress");
       this.startTime = checkNotNull(startTime, "startTime");
       this.state = checkNotNull(state, "state");

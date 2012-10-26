@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.compute.functions;
 
 import static org.jclouds.compute.options.TemplateOptions.Builder.inboundPorts;
@@ -38,12 +39,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.inject.Module;
 
+*/
 /**
  * Tests behavior of {@code WindowsApi}
  * 
  * @author Adrian Cole
- */
-@Test(groups = "live", singleThreaded = true, testName = "PasswordCredentialsFromWindowsInstanceLiveTest")
+ *//*
+
+//@Test(groups = "live", singleThreaded = true, testName = "PasswordCredentialsFromWindowsInstanceLiveTest")
 public class PasswordCredentialsFromWindowsInstanceLiveTest extends BaseComputeServiceContextLiveTest {
    protected TemplateBuilderSpec windowsTemplate;
 
@@ -71,7 +74,7 @@ public class PasswordCredentialsFromWindowsInstanceLiveTest extends BaseComputeS
       return ImmutableSet.<Module> builder().addAll(super.setupModules()).add(new BouncyCastleCryptoModule()).build();
    }
 
-   @Test
+   //@Test
    public void testWindowsAdminWorks() throws Exception {
       String group = "winadm";
       // Spin up a new node. Make sure to open the RDP port 3389
@@ -87,3 +90,4 @@ public class PasswordCredentialsFromWindowsInstanceLiveTest extends BaseComputeS
    }
 
 }
+*/

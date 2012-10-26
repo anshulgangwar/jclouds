@@ -18,38 +18,34 @@
  */
 package org.jclouds.ec2.xml;
 
-import static org.jclouds.util.SaxUtils.currentOrNull;
-import static org.jclouds.util.SaxUtils.equalsOrSuffix;
-
-import java.util.Date;
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.jclouds.aws.util.AWSUtils;
-import org.jclouds.date.DateCodec;
-import org.jclouds.date.DateCodecFactory;
-import org.jclouds.ec2.domain.Attachment;
-import org.jclouds.ec2.domain.BlockDevice;
-import org.jclouds.ec2.domain.InstanceState;
-import org.jclouds.ec2.domain.Reservation;
-import org.jclouds.ec2.domain.RootDeviceType;
-import org.jclouds.ec2.domain.RunningInstance;
-import org.jclouds.ec2.domain.RunningInstance.Builder;
-import org.jclouds.http.functions.ParseSax.HandlerForGeneratedRequestWithResult;
-import org.jclouds.location.Region;
-import org.xml.sax.Attributes;
-
 import com.google.common.base.Supplier;
 import com.google.common.collect.Sets;
 import com.google.inject.Provider;
+import org.jclouds.aws.util.AWSUtils;
+import org.jclouds.date.DateCodec;
+import org.jclouds.date.DateCodecFactory;
+import org.jclouds.ec2.domain.*;
+import org.jclouds.ec2.domain.RunningInstance.Builder;
+import org.jclouds.http.functions.ParseSax.HandlerForGeneratedRequestWithResult;
+import org.jclouds.location.Region;
+import org.jclouds.logging.Logger;
+import org.xml.sax.Attributes;
+
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import java.util.Date;
+import java.util.Set;
+
+import static org.jclouds.util.SaxUtils.currentOrNull;
+import static org.jclouds.util.SaxUtils.equalsOrSuffix;
 
 /**
  * 
  * @author Adrian Cole
  */
 public abstract class BaseReservationHandler<T> extends HandlerForGeneratedRequestWithResult<T> {
-
+    @Resource
+    protected Logger logger = Logger.NULL;
    protected final DateCodec dateCodec;
    protected final Supplier<String> defaultRegion;
    protected final Provider<Builder> builderProvider;
@@ -71,6 +67,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    protected boolean inInstancesSet;
    protected boolean inProductCodes;
    protected boolean inGroupSet;
+   protected boolean inTagSet;
 
    // attachments
    private String volumeId;
@@ -97,10 +94,15 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
          inProductCodes = true;
       } else if (equalsOrSuffix(qName, "groupSet")) {
          inGroupSet = true;
-      } 
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+          inTagSet = true;
+      }
+
    }
 
    public void endElement(String uri, String name, String qName) {
+       logger.error(" yahan aaya endElement 1 ");
+       logger.error(" reservation qname value " + qName + " current text  "+ currentText + "  becch wala ");
       if (equalsOrSuffix(qName, "item")) {
          inItem();
          itemDepth--;
@@ -109,12 +111,16 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = false;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = false;
+          inGroupSet = false;
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+         inTagSet = false;
       } else if (equalsOrSuffix(qName, "groupId")) {
-         groupNames.add(currentOrNull(currentText));
+          if(!inInstancesSet) {
+             groupNames.add(currentOrNull(currentText));
+          }
       } else if (equalsOrSuffix(qName, "ownerId")) {
          ownerId = currentOrNull(currentText);
-      } else if (equalsOrSuffix(qName, "requesterId")) {
+      } else if (equalsOrSuffix(qName, "requestId")) {
          requesterId = currentOrNull(currentText);
       } else if (equalsOrSuffix(qName, "reservationId")) {
          reservationId = currentOrNull(currentText);
@@ -128,6 +134,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "imageId")) {
          builder.imageId(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "instanceId")) {
+          logger.error(" instance id yahan "+ currentText);
          builder.instanceId(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "name")) {
          String rawState = currentOrNull(currentText);
@@ -163,7 +170,8 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "reason")) {
          builder.reason(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "rootDeviceType")) {
-         builder.rootDeviceType(RootDeviceType.fromValue(currentOrNull(currentText)));
+         logger.error(" yahan ye null anshul "+ currentText.toString());
+         builder.rootDeviceType(RootDeviceType.fromValue("ebs"));
       } else if (equalsOrSuffix(qName, "rootDeviceName")) {
          builder.rootDeviceName(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "deviceName")) {
@@ -185,19 +193,23 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
          this.deleteOnTermination = true;
       }
       currentText = new StringBuilder();
+       logger.error(" yahan aaya endElement 2 ");
    }
 
    protected void inItem() {
       if (endOfInstanceItem()) {
+          logger.error(" yahan aaya inItem 1 ");
          refineBuilderBeforeAddingInstance();
          instances.add(builder.build());
          builder = builderProvider.get();
+          logger.error(" yahan aaya inItem 2 ");
       }
    }
 
    protected void refineBuilderBeforeAddingInstance() {
+       logger.error(" yahan aaya refineBuilderBeforeAddingInstance 1 ");
       String region = getRequest() != null ? AWSUtils.findRegionInArgsOrNull(getRequest()) : null;
-
+       logger.error(" yahan aaya refineBuilderBeforeAddingInstance 2 ");
       // Eucalyptus
       if (builder.getIpAddress() == null && builder.getDnsName() != null && builder.getDnsName().matches(".*[0-9]$")) {
          builder.ipAddress(builder.getDnsName());
@@ -208,8 +220,9 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
          builder.privateIpAddress(builder.getPrivateDnsName());
          builder.privateDnsName(null);
       }
-
+       logger.error(" yahan aaya refineBuilderBeforeAddingInstance 3 " );
       builder.region((region == null) ? defaultRegion.get() : region);
+       logger.error(" yahan aaya refineBuilderBeforeAddingInstance 4 "+ defaultRegion.get());
       builder.groupNames(groupNames);
    }
 
@@ -218,7 +231,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    }
 
    protected boolean endOfInstanceItem() {
-      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet;
+      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet && !inTagSet;
    }
 
    public void characters(char ch[], int start, int length) {
@@ -226,11 +239,15 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    }
 
    protected Reservation<? extends RunningInstance> newReservation() {
+       logger.error(" yahan aaya newReservation 1 ");
       String region = getRequest() != null ? AWSUtils.findRegionInArgsOrNull(getRequest()) : null;
       if (region == null)
+          logger.error(" yahan aaya newReservation 2 ");
          region = defaultRegion.get();
+       logger.error(" yahan aaya newReservation 3 ");
       Reservation<? extends RunningInstance> info = new Reservation<RunningInstance>(region, groupNames, instances,
             ownerId, requesterId, reservationId);
+       logger.error(" yahan aaya newReservation 4 ");
       this.groupNames = Sets.newLinkedHashSet();
       this.instances = Sets.newLinkedHashSet();
       this.ownerId = null;

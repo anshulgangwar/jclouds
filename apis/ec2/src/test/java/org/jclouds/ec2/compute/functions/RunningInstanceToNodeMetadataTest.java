@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.compute.functions;
 
 import static org.jclouds.ec2.compute.domain.EC2HardwareBuilder.m1_small;
@@ -59,9 +60,11 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.name.Names;
 
+*/
 /**
  * @author Adrian Cole
- */
+ *//*
+
 @Test(groups = "unit", testName = "RunningInstanceToNodeMetadataTest")
 public class RunningInstanceToNodeMetadataTest {
 
@@ -315,3 +318,4 @@ public class RunningInstanceToNodeMetadataTest {
    }
 
 }
+*/

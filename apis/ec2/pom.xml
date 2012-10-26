@@ -34,16 +34,17 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <test.ec2.endpoint>http://127.0.0.1:7080/awsapi</test.ec2.endpoint>
-    <test.ec2.api-version>2010-11-15</test.ec2.api-version>
-    <test.ec2.build-version></test.ec2.build-version>
-    <test.ec2.identity>qG1DHtjlilWGVqeo2n409GNuxyxJIn-oeRU-bDEDgJr1gUR2TnzjvWdWAuCq_3VQC8iRMfIi65d-jiub8-mb0w</test.ec2.identity>
-    <test.ec2.credential>cKuZqdLikxdUUbT9-sbMjnBUNu4e444cTIo-PSpFtlVVvLuzx2BZzTW_5RaA9PqMJt0hTlLNTwRjbIObaw6L3Q</test.ec2.credential>
-    <test.ec2.template>imageId=zone1/bc7550b3-58db-466a-adf4-0db96b764fff</test.ec2.template>
-    <test.ec2.ebs-template>hardwareId=m1.small,imageId=zone1/bc7550b3-58db-466a-adf4-0db96b764fff</test.ec2.ebs-template>
-    <test.ec2.windows-template>hardwareId=m1.small,imageNameMatches=Windows_Server-2008-R2_SP1-English-64Bit-Base-WinRM-</test.ec2.windows-template>
-    <test.ec2.windows-owner>449550055360</test.ec2.windows-owner>
-    <jclouds.osgi.export>org.jclouds.ec2*;version="${project.version}"</jclouds.osgi.export>
+      <test.ec2.endpoint>http://10.102.125.213:7080/awsapi</test.ec2.endpoint>
+      <test.ec2.api-version>2012-08-15</test.ec2.api-version>
+      <!-- <test.ec2.api-version>2010-11-15</test.ec2.api-version>  -->
+      <test.ec2.build-version></test.ec2.build-version>
+      <test.ec2.identity>a4U6DaFOv7JTWFlEhwn_im3q2KbNTTmPPR-im0qiGWpGTwL_ULHDTwLEjxXEMinv38GgaiKv80N4TEHuzVisbQ</test.ec2.identity>
+      <test.ec2.credential>wR_gX6iGvhz5CHtbcewI5n3RZCu4jAuYXK3HzOq1r-FGZyxEorI07kgeX_mYTOiLtkWz8ti9ozsJLfAqOZTXYQ</test.ec2.credential>
+      <test.ec2.template>imageId=AmazonEC2/3a5ee1b9-1017-4d64-85ac-b29be64a744a</test.ec2.template>
+      <test.ec2.ebs-template>hardwareId=m1.small,imageId=AmazonEC2/3a5ee1b9-1017-4d64-85ac-b29be64a744a</test.ec2.ebs-template>
+      <test.ec2.windows-template>hardwareId=m1.small,imageNameMatches=Windows_Server-2008-R2_SP1-English-64Bit-Base-WinRM-</test.ec2.windows-template>
+      <test.ec2.windows-owner>449550055360</test.ec2.windows-owner>
+      <jclouds.osgi.export>org.jclouds.ec2*;version="${project.version}"</jclouds.osgi.export>
     <jclouds.osgi.import>
       org.jclouds.compute.internal;version="${project.version}",
       org.jclouds.rest.internal;version="${project.version}",

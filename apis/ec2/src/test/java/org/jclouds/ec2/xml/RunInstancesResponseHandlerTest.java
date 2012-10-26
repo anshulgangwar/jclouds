@@ -15,39 +15,38 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.xml;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.testng.Assert.assertEquals;
-
-import java.io.InputStream;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.jclouds.date.DateService;
-import org.jclouds.ec2.domain.InstanceState;
-import org.jclouds.ec2.domain.InstanceType;
-import org.jclouds.ec2.domain.Reservation;
-import org.jclouds.ec2.domain.RootDeviceType;
-import org.jclouds.ec2.domain.RunningInstance;
+import org.jclouds.ec2.domain.*;
 import org.jclouds.http.functions.ParseSax;
+import org.jclouds.logging.Logger;
 import org.jclouds.rest.internal.GeneratedHttpRequest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import javax.annotation.Resource;
+import java.io.InputStream;
 
+import static org.easymock.EasyMock.*;
+import static org.testng.Assert.assertEquals;
+
+*/
 /**
  * Tests behavior of {@code RunInstancesResponseHandler}
  * 
  * @author Adrian Cole
- */
+ *//*
+
 // NOTE:without testName, this will not call @Before* and fail w/NPE during surefire
 @Test(groups = "unit", testName = "RunInstancesResponseHandlerTest")
 public class RunInstancesResponseHandlerTest extends BaseEC2HandlerTest {
-
+    @Resource
+    protected Logger logger = Logger.NULL;
    private DateService dateService;
 
    @BeforeTest
@@ -118,3 +117,4 @@ public class RunInstancesResponseHandlerTest extends BaseEC2HandlerTest {
       handler.setContext(request);
    }
 }
+*/

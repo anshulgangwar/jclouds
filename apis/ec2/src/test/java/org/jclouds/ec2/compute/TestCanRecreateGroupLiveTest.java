@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.compute;
 
 import org.jclouds.compute.RunNodesException;
@@ -26,11 +27,13 @@ import org.testng.annotations.Test;
 
 import com.google.common.base.Throwables;
 
+*/
 /**
  * 
  * @author Adrian Cole
- */
-@Test(groups = "live", testName="TestCanRecreateGroupLiveTest")
+ *//*
+
+//@Test(groups = "live", testName="TestCanRecreateGroupLiveTest")
 public class TestCanRecreateGroupLiveTest extends BaseComputeServiceContextLiveTest {
    public TestCanRecreateGroupLiveTest() {
       provider = "ec2";
@@ -57,3 +60,4 @@ public class TestCanRecreateGroupLiveTest extends BaseComputeServiceContextLiveT
    public static final String PREFIX = System.getProperty("user.name") + "ec2";
 
 }
+*/

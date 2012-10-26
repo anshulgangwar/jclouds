@@ -15,15 +15,18 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.features;
 
 import org.jclouds.ec2.internal.BaseEC2ClientLiveTest;
 import org.testng.annotations.Test;
 
+*/
 /**
  * @author Adrian Cole
- */
+ *//*
+
 @Test(groups = "live", testName = "WindowsApiLiveTest")
 public class WindowsApiLiveTest extends BaseEC2ClientLiveTest {
 
@@ -33,3 +36,4 @@ public class WindowsApiLiveTest extends BaseEC2ClientLiveTest {
       return context.getApi().getWindowsApi();
    }
 }
+*/

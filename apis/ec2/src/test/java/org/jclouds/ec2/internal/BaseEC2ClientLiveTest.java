@@ -11,7 +11,9 @@ import com.google.common.reflect.TypeToken;
 /**
  * 
  * @author Adrian Cole
+ *
  */
+
 public class BaseEC2ClientLiveTest extends BaseContextLiveTest<RestContext<? extends EC2Client, ? extends EC2AsyncClient>> {
 
    public BaseEC2ClientLiveTest() {

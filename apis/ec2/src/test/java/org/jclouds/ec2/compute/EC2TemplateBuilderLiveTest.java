@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package org.jclouds.ec2.compute;
 
 import static org.jclouds.http.internal.TrackingJavaUrlHttpCommandExecutorService.getJavaArgsForRequestAtIndex;
@@ -94,3 +95,4 @@ public abstract class EC2TemplateBuilderLiveTest extends BaseTemplateBuilderLive
       assertEquals(actual[0].getImageIds(), ImmutableSet.of(expectedImageId));
    }
 }
+*/
