@@ -182,7 +182,7 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
         RegisterImageOptions options = new RegisterImageOptions();
         options.asArchitecture("VHD:zone1:CentOS:Xenserver");
       registeredImageId = client.registerImageFromManifestInRegion(regionId,"imageRegister",
-              "http://10.102.123.240/cloudstack/templates/centos56-x86_64.vhd.bz2",
+              "http://10.147.28.6/templates/centos5.5hvm.vhd.gz",
               new RegisterImageOptions().asArchitecture("VHD:zone1:CentOS:Xenserver")) ;
     }
 
