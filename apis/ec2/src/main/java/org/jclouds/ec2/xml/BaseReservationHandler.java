@@ -68,6 +68,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    protected boolean inProductCodes;
    protected boolean inGroupSet;
    protected boolean inTagSet;
+   protected boolean inVpcGroupSet;
 
    // attachments
    private String volumeId;
@@ -93,7 +94,12 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = true;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = true;
+          if(!inInstancesSet) {
+              inGroupSet = true;
+          } else {
+              inVpcGroupSet = true;
+          }
+
       } else if (equalsOrSuffix(qName, "tagSet")) {
           inTagSet = true;
       }
@@ -111,11 +117,15 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = false;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-          inGroupSet = false;
+          if(!inInstancesSet) {
+              inGroupSet = false;
+          } else {
+              inVpcGroupSet = false;
+          }
       } else if (equalsOrSuffix(qName, "tagSet")) {
          inTagSet = false;
       } else if (equalsOrSuffix(qName, "groupId")) {
-          if(!inInstancesSet) {
+          if(inGroupSet) {
              groupNames.add(currentOrNull(currentText));
           }
       } else if (equalsOrSuffix(qName, "ownerId")) {
@@ -231,7 +241,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    }
 
    protected boolean endOfInstanceItem() {
-      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet && !inTagSet;
+      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet && !inTagSet && !inVpcGroupSet;
    }
 
    public void characters(char ch[], int start, int length) {

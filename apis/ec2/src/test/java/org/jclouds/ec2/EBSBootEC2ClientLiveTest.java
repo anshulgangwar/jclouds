@@ -18,45 +18,20 @@
  */
 package org.jclouds.ec2;
 
-import static org.jclouds.ec2.options.CreateSnapshotOptions.Builder.withDescription;
-import static org.jclouds.ec2.options.DescribeImagesOptions.Builder.imageIds;
-import static org.jclouds.ec2.options.RegisterImageBackedByEbsOptions.Builder.withKernelId;
-import static org.jclouds.ec2.options.RunInstancesOptions.Builder.withKeyName;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.net.UnknownHostException;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.net.HostAndPort;
+import com.google.inject.Injector;
 import org.jclouds.aws.AWSResponseException;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.domain.LoginCredentials;
-import org.jclouds.ec2.domain.Attachment;
-import org.jclouds.ec2.domain.BlockDevice;
-import org.jclouds.ec2.domain.Image;
-import org.jclouds.ec2.domain.Image.Architecture;
+import org.jclouds.ec2.domain.*;
 import org.jclouds.ec2.domain.Image.ImageType;
-import org.jclouds.ec2.domain.InstanceState;
-import org.jclouds.ec2.domain.InstanceType;
-import org.jclouds.ec2.domain.IpProtocol;
-import org.jclouds.ec2.domain.KeyPair;
-import org.jclouds.ec2.domain.Reservation;
-import org.jclouds.ec2.domain.RootDeviceType;
-import org.jclouds.ec2.domain.RunningInstance;
-import org.jclouds.ec2.domain.Snapshot;
-import org.jclouds.ec2.domain.Volume;
 import org.jclouds.ec2.domain.Volume.InstanceInitiatedShutdownBehavior;
-import org.jclouds.ec2.predicates.InstanceStateRunning;
-import org.jclouds.ec2.predicates.InstanceStateStopped;
-import org.jclouds.ec2.predicates.InstanceStateTerminated;
-import org.jclouds.ec2.predicates.SnapshotCompleted;
-import org.jclouds.ec2.predicates.VolumeAttached;
-import org.jclouds.ec2.predicates.VolumeAvailable;
+import org.jclouds.ec2.predicates.*;
 import org.jclouds.http.HttpResponseException;
 import org.jclouds.io.Payloads;
 import org.jclouds.predicates.RetryablePredicate;
@@ -71,12 +46,19 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.net.HostAndPort;
-import com.google.inject.Injector;
+import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static org.jclouds.ec2.options.CreateSnapshotOptions.Builder.withDescription;
+import static org.jclouds.ec2.options.DescribeImagesOptions.Builder.imageIds;
+import static org.jclouds.ec2.options.RegisterImageBackedByEbsOptions.Builder.withKernelId;
+import static org.jclouds.ec2.options.RunInstancesOptions.Builder.withKeyName;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Adapted from the following sources: {@link http://gist.github.com/249915}, {@link http
@@ -367,7 +349,7 @@ public class EBSBootEC2ClientLiveTest extends BaseComputeServiceContextLiveTest 
             "ebsboot-" + image.getId(),
             snapshot.getId(),
             withKernelId(image.getKernelId()).withRamdisk(image.getRamdiskId()).withDescription(description)
-                  .asArchitecture(Architecture.I386));
+                  .asArchitecture("VHD:zone1:CentOS:Xenserver"));
       try {
          ebsImage = Iterables.getOnlyElement(client.getAMIServices().describeImagesInRegion(snapshot.getRegion(),
                imageIds(amiId)));

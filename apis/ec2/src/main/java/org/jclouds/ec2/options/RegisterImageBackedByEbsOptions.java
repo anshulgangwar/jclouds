@@ -136,7 +136,7 @@ public class RegisterImageBackedByEbsOptions extends RegisterImageOptions {
       /**
        * @see RegisterImageBackedByEbsOptions#asArchitecture(Architecture)
        */
-      public static RegisterImageBackedByEbsOptions asArchitecture(Architecture architecture) {
+      public static RegisterImageBackedByEbsOptions asArchitecture(String architecture) {
          RegisterImageBackedByEbsOptions options = new RegisterImageBackedByEbsOptions();
          return options.asArchitecture(architecture);
       }
@@ -207,7 +207,7 @@ public class RegisterImageBackedByEbsOptions extends RegisterImageOptions {
     * {@inheritDoc}
     */
    @Override
-   public RegisterImageBackedByEbsOptions asArchitecture(Architecture architecture) {
+   public RegisterImageBackedByEbsOptions asArchitecture(String architecture) {
       return (RegisterImageBackedByEbsOptions) super.asArchitecture(architecture);
    }
 

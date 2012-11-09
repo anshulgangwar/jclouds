@@ -18,46 +18,27 @@
  */
 package org.jclouds.ec2.config;
 
-import java.util.Map;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Scopes;
 import org.jclouds.aws.config.WithZonesFormSigningRestClientModule;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.features.WindowsApi;
 import org.jclouds.ec2.features.WindowsAsyncApi;
-import org.jclouds.ec2.services.AMIAsyncClient;
-import org.jclouds.ec2.services.AMIClient;
-import org.jclouds.ec2.services.AvailabilityZoneAndRegionAsyncClient;
-import org.jclouds.ec2.services.AvailabilityZoneAndRegionClient;
-import org.jclouds.ec2.services.ElasticBlockStoreAsyncClient;
-import org.jclouds.ec2.services.ElasticBlockStoreClient;
-import org.jclouds.ec2.services.ElasticIPAddressAsyncClient;
-import org.jclouds.ec2.services.ElasticIPAddressClient;
-import org.jclouds.ec2.services.InstanceAsyncClient;
-import org.jclouds.ec2.services.InstanceClient;
-import org.jclouds.ec2.services.KeyPairAsyncClient;
-import org.jclouds.ec2.services.KeyPairClient;
-import org.jclouds.ec2.services.SecurityGroupAsyncClient;
-import org.jclouds.ec2.services.SecurityGroupClient;
-import org.jclouds.ec2.services.WindowsAsyncClient;
-import org.jclouds.ec2.services.WindowsClient;
+import org.jclouds.ec2.services.*;
 import org.jclouds.ec2.suppliers.DescribeAvailabilityZonesInRegion;
-import org.jclouds.ec2.suppliers.DescribeRegionsForRegionURIs;
 import org.jclouds.ec2.suppliers.ExtendededDescribeRegionsForRegionURIs;
+import org.jclouds.http.HttpRetryHandler;
+import org.jclouds.http.annotation.ServerError;
 import org.jclouds.location.config.LocationModule;
-import org.jclouds.location.suppliers.RegionIdToURISupplier;
-import org.jclouds.location.suppliers.RegionIdToZoneIdsSupplier;
-import org.jclouds.location.suppliers.RegionIdsSupplier;
-import org.jclouds.location.suppliers.ZoneIdToURISupplier;
-import org.jclouds.location.suppliers.ZoneIdsSupplier;
+import org.jclouds.location.suppliers.*;
 import org.jclouds.location.suppliers.derived.RegionIdsFromRegionIdToURIKeySet;
 import org.jclouds.location.suppliers.derived.ZoneIdToURIFromJoinOnRegionIdToURI;
 import org.jclouds.location.suppliers.derived.ZoneIdsFromRegionIdToZoneIdsValues;
 import org.jclouds.rest.ConfiguresRestClient;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Scopes;
+import java.util.Map;
 
 /**
  * Configures the EC2 connection.
@@ -98,4 +79,10 @@ public class EC2RestClientModule<S extends EC2Client, A extends EC2AsyncClient> 
       bind(RegionIdsSupplier.class).to(RegionIdsFromRegionIdToURIKeySet.class).in(Scopes.SINGLETON);
       bind(ZoneIdToURISupplier.class).to(ZoneIdToURIFromJoinOnRegionIdToURI.class).in(Scopes.SINGLETON);
    }
+
+    @Override
+    protected void bindRetryHandlers() {
+       super.bindRetryHandlers();
+       bind(HttpRetryHandler.class).annotatedWith(ServerError.class).toInstance(HttpRetryHandler.NEVER_RETRY);
+    }
 }

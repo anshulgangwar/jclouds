@@ -46,8 +46,8 @@ public class RegisterImageOptions extends BaseEC2RequestOptions {
    /**
     * The architecture of the image.
     */
-   public RegisterImageOptions asArchitecture(Architecture architecture) {
-      formParameters.put("Architecture", checkNotNull(architecture, "architecture").value());
+   public RegisterImageOptions asArchitecture(String architecture) {
+      formParameters.put("Architecture", checkNotNull(architecture, "architecture"));
       return this;
    }
 
@@ -97,7 +97,7 @@ public class RegisterImageOptions extends BaseEC2RequestOptions {
       /**
        * @see RegisterImageOptions#asArchitecture(Architecture)
        */
-      public static RegisterImageOptions asArchitecture(Architecture architecture) {
+      public static RegisterImageOptions asArchitecture(String architecture) {
          RegisterImageOptions options = new RegisterImageOptions();
          return options.asArchitecture(architecture);
       }

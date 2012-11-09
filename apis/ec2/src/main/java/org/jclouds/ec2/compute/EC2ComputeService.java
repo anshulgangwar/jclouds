@@ -136,7 +136,7 @@ public class EC2ComputeService extends BaseComputeService {
       checkNotEmpty(region, "region");
       checkNotEmpty(group, "group");
       String groupName = namingConvention.create().sharedNameForGroup(group);
-      
+
       if (ec2Client.getSecurityGroupServices().describeSecurityGroupsInRegion(region, groupName).size() > 0) {
          logger.debug(">> deleting securityGroup(%s)", groupName);
          ec2Client.getSecurityGroupServices().deleteSecurityGroupInRegion(region, groupName);
@@ -153,7 +153,7 @@ public class EC2ComputeService extends BaseComputeService {
          Predicate<String> keyNameMatcher = namingConvention.create().containsGroup(group);
          String oldKeyNameRegex = String.format("jclouds#%s#%s#%s", group, region, "[0-9a-f]+").replace('#', delimiter);
          // old keypair pattern too verbose as it has an unnecessary region qualifier
-         
+
          if (keyNameMatcher.apply(keyName) || keyName.matches(oldKeyNameRegex)) {
             Set<String> instancesUsingKeyPair = extractIdsFromInstances(filter(concat(ec2Client.getInstanceServices()
                   .describeInstancesInRegion(region)), usingKeyPairAndNotDead(keyPair)));

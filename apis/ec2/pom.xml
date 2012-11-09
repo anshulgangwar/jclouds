@@ -34,14 +34,14 @@
   <packaging>bundle</packaging>
 
   <properties>
-      <test.ec2.endpoint>http://10.102.125.213:7080/awsapi</test.ec2.endpoint>
+      <test.ec2.endpoint>http://10.102.125.216:7080/awsapi</test.ec2.endpoint>
       <test.ec2.api-version>2012-08-15</test.ec2.api-version>
       <!-- <test.ec2.api-version>2010-11-15</test.ec2.api-version>  -->
       <test.ec2.build-version></test.ec2.build-version>
-      <test.ec2.identity>a4U6DaFOv7JTWFlEhwn_im3q2KbNTTmPPR-im0qiGWpGTwL_ULHDTwLEjxXEMinv38GgaiKv80N4TEHuzVisbQ</test.ec2.identity>
-      <test.ec2.credential>wR_gX6iGvhz5CHtbcewI5n3RZCu4jAuYXK3HzOq1r-FGZyxEorI07kgeX_mYTOiLtkWz8ti9ozsJLfAqOZTXYQ</test.ec2.credential>
-      <test.ec2.template>imageId=AmazonEC2/3a5ee1b9-1017-4d64-85ac-b29be64a744a</test.ec2.template>
-      <test.ec2.ebs-template>hardwareId=m1.small,imageId=AmazonEC2/3a5ee1b9-1017-4d64-85ac-b29be64a744a</test.ec2.ebs-template>
+      <test.ec2.identity>_laZ1WPJmII-gbz8rh9sBohzIS2GtEYa7YoG-DIlpb7RlIe1QA9znNxNntLKvb3jzaITDRmnF__nLcqcLAlclw</test.ec2.identity>
+      <test.ec2.credential>g6LYCqJlHdsfbsO0miGqxHUC7gy2Tz3qZXwycA8A-5t5QB_x3gNqD4dE34i7X-3N7NmKO65T8TAB8Cqq3uDWWw</test.ec2.credential>
+      <test.ec2.template>imageId=AmazonEC2/42c96d86-ce4a-466e-bfb2-81ea45f4f061</test.ec2.template>
+      <test.ec2.ebs-template>hardwareId=m1.small,imageId=AmazonEC2/42c96d86-ce4a-466e-bfb2-81ea45f4f061</test.ec2.ebs-template>
       <test.ec2.windows-template>hardwareId=m1.small,imageNameMatches=Windows_Server-2008-R2_SP1-English-64Bit-Base-WinRM-</test.ec2.windows-template>
       <test.ec2.windows-owner>449550055360</test.ec2.windows-owner>
       <jclouds.osgi.export>org.jclouds.ec2*;version="${project.version}"</jclouds.osgi.export>

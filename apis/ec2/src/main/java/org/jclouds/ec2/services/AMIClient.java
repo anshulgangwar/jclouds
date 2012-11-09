@@ -38,7 +38,7 @@ import org.jclouds.javax.annotation.Nullable;
  * 
  * @author Adrian Cole
  */
-@Timeout(duration = 45, timeUnit = TimeUnit.SECONDS)
+@Timeout(duration = 900, timeUnit = TimeUnit.SECONDS)
 public interface AMIClient {
 
    /**
