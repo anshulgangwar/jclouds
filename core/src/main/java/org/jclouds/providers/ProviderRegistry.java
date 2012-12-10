@@ -27,21 +27,21 @@ import com.google.common.collect.Sets;
  */
 public class ProviderRegistry {
 
-  private static final Set<ProviderMetadata> providers = Sets.newHashSet();
+   private static final Set<ProviderMetadata> providers = Sets.newHashSet();
 
-  public static void registerProvider(ProviderMetadata provider) {
-    providers.add(provider);
-  }
+   public static void registerProvider(ProviderMetadata provider) {
+      providers.add(provider);
+   }
 
-  public static void unregisterProvider(ProviderMetadata provider) {
-    providers.remove(provider);
-  }
+   public static void unregisterProvider(ProviderMetadata provider) {
+      providers.remove(provider);
+   }
 
-  public static Iterable<ProviderMetadata> fromRegistry() {
-    return Iterable.class.cast(providers);
-  }
+   public static Iterable<ProviderMetadata> fromRegistry() {
+      return Iterable.class.cast(providers);
+   }
 
-  public static void clear() {
-    providers.clear();
-  }
+   public static void clear() {
+      providers.clear();
+   }
 }
