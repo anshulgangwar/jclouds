@@ -34,14 +34,17 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <test.cloudstack-ec2.endpoint>http://localhost:8090/bridge/rest/AmazonEC2</test.cloudstack-ec2.endpoint>
-    <test.cloudstack-ec2.api-version>2010-11-15</test.cloudstack-ec2.api-version>
-    <test.cloudstack-ec2.build-version></test.cloudstack-ec2.build-version>
-    <test.cloudstack-ec2.identity>FIXME_IDENTITY</test.cloudstack-ec2.identity>
-    <test.cloudstack-ec2.credential>FIXME_CREDENTIAL</test.cloudstack-ec2.credential>
-    <test.cloudstack-ec2.template>imageId=fixme-region/ami-fixme</test.cloudstack-ec2.template>
-    <test.cloudstack-ec2.ebs-template>imageId=fixme-region/ami-fixmeebs</test.cloudstack-ec2.ebs-template>
-    <jclouds.osgi.export>org.jclouds.cloudstack.ec2*;version="${project.version}"</jclouds.osgi.export>
+
+      <test.cloudstack-ec2.endpoint>http://10.102.125.216:7080/awsapi</test.cloudstack-ec2.endpoint>
+      <test.cloudstack-ec2.api-version>2012-08-15</test.cloudstack-ec2.api-version>
+      <test.cloudstack-ec2.build-version></test.cloudstack-ec2.build-version>
+      <test.cloudstack-ec2.identity>5-A6-tS66k_MXsgIm2ZHAD1J6u0L_MNAYOD6NwsL0QRsJvub6a5psNnYrzWBvyf1B4OaygkwFyiY2JLKPp8-MA</test.cloudstack-ec2.identity>
+      <test.cloudstack-ec2.credential>D2I0CiYLxpvCOjdvvHYeamuwGJE1AqcbAv5OmcqqLeh9RkSlYppohs-lS0mCT5P-5Fsc0L_U_oN6zbayghTpIg</test.cloudstack-ec2.credential>
+      <test.cloudstack-ec2.template>imageId=AmazonEC2/0192b49a-95b0-4663-9f7d-d7e06be18988</test.cloudstack-ec2.template>
+      <test.cloudstack-ec2.ebs-template>imageId=AmazonEC2/0192b49a-95b0-4663-9f7d-d7e06be18988</test.cloudstack-ec2.ebs-template>
+      <test.cloudstack-ec2.template-url>http://10.147.28.6/templates/centos5.5hvm.vhd.gz</test.cloudstack-ec2.template-url>
+      <test.cloudstack-ec2.template-architecture>VHD:zone1:CentOS:Xenserver</test.cloudstack-ec2.template-architecture>
+      <jclouds.osgi.export>org.jclouds.cloudstack.ec2*;version="${project.version}"</jclouds.osgi.export>
     <jclouds.osgi.import>
       org.jclouds.compute.internal;version="${project.version}",
       org.jclouds.rest.internal;version="${project.version}",
@@ -115,6 +118,8 @@
                     <test.cloudstack-ec2.credential>${test.cloudstack-ec2.credential}</test.cloudstack-ec2.credential>
                     <test.cloudstack-ec2.template>${test.cloudstack-ec2.template}</test.cloudstack-ec2.template>
                     <test.cloudstack-ec2.ebs-template>${test.cloudstack-ec2.ebs-template}</test.cloudstack-ec2.ebs-template>
+                    <test.cloudstack-ec2.template-url>${test.cloudstack-ec2.template-url}</test.cloudstack-ec2.template-url>
+                    <test.cloudstack-ec2.template-architecture>${test.cloudstack-ec2.template-architecture}</test.cloudstack-ec2.template-architecture>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
