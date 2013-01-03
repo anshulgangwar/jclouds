@@ -18,14 +18,11 @@
  */
 package org.jclouds.ec2.features.internal;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.jclouds.ec2.domain.Tag;
 import org.jclouds.ec2.features.TagApi;
 import org.jclouds.ec2.internal.BaseEC2ApiLiveTest;
@@ -36,11 +33,13 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * tests ability to tag, filter, and delete tags from a resource.
@@ -94,7 +93,7 @@ public abstract class BaseTagApiLiveTest extends BaseEC2ApiLiveTest {
                public boolean apply(Tag in) {
                   return in.getResourceId().equals(resource.id);
                }
-            }).toImmutableSet().equals(input);
+            }).toSet().equals(input);
          }
 
       }, 600, 200, 200, TimeUnit.MILLISECONDS).apply(ImmutableSet.of(tag, tag2)));

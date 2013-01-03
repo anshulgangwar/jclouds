@@ -18,8 +18,11 @@
  */
 package org.jclouds.s3;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jclouds.Constants.PROPERTY_API_VERSION;
 import static org.jclouds.Constants.PROPERTY_RELAX_HOSTNAME;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
 import static org.jclouds.blobstore.reference.BlobStoreConstants.DIRECTORY_SUFFIX_FOLDER;
@@ -63,23 +66,30 @@ import com.google.inject.Module;
 public class S3ApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<? extends S3Client,? extends  S3AsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<? extends S3Client,? extends  S3AsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
-   public Builder toBuilder() {
-      return (Builder) new Builder(getApi(), getAsyncApi()).fromApiMetadata(this);
+   public Builder<?> toBuilder() {
+      return new ConcreteBuilder().fromApiMetadata(this);
    }
 
    public S3ApiMetadata() {
-      this(new Builder(S3Client.class, S3AsyncClient.class));
+      this(new ConcreteBuilder());
    }
 
-   protected S3ApiMetadata(Builder builder) {
+   protected S3ApiMetadata(Builder<?> builder) {
       super(builder);
    }
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(90) + "");
+      // 512KB/s for max size of 5GB
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "S3Client.getObject", SECONDS.toMillis(5242880 / 512) + "");
+      // 128KB/s for max size of 5GB
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "S3Client.putObject", SECONDS.toMillis(5242880 / 128) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "S3Client.copyObject", MINUTES.toMillis(10) + "");
       properties.setProperty(PROPERTY_API_VERSION, S3AsyncClient.VERSION);
       properties.setProperty(PROPERTY_AUTH_TAG, "AWS");
       properties.setProperty(PROPERTY_HEADER_TAG, S3Headers.DEFAULT_AMAZON_HEADERTAG);
@@ -91,7 +101,10 @@ public class S3ApiMetadata extends BaseRestApiMetadata {
       return properties;
    }
    
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static abstract class Builder<T extends Builder<T>> extends BaseRestApiMetadata.Builder<T> {
+      protected Builder() {
+         this(S3Client.class, S3AsyncClient.class);
+      }
 
       protected Builder(Class<?> syncClient, Class<?> asyncClient){
          super(syncClient, asyncClient);
@@ -112,12 +125,12 @@ public class S3ApiMetadata extends BaseRestApiMetadata {
       public ApiMetadata build() {
          return new S3ApiMetadata(this);
       }
-
+   }
+   
+   private static class ConcreteBuilder extends Builder<ConcreteBuilder> {
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected ConcreteBuilder self() {
          return this;
       }
    }
-
 }

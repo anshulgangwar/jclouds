@@ -24,11 +24,13 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.aws.s3.config.AWSS3RestClientModule;
 import org.jclouds.aws.s3.functions.ETagFromHttpResponseViaRegex;
 import org.jclouds.aws.s3.functions.UploadIdFromHttpResponseViaRegex;
 import org.jclouds.blobstore.binders.BindBlobToMultipartFormTest;
 import org.jclouds.date.TimeStamp;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseETagHeader;
 import org.jclouds.http.functions.ParseSax;
@@ -38,16 +40,13 @@ import org.jclouds.io.Payload;
 import org.jclouds.io.Payloads;
 import org.jclouds.location.Region;
 import org.jclouds.rest.ConfiguresRestClient;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.s3.S3AsyncClient;
 import org.jclouds.s3.S3AsyncClientTest;
 import org.jclouds.s3.S3Client;
 import org.jclouds.s3.domain.ObjectMetadata;
 import org.jclouds.s3.domain.ObjectMetadataBuilder;
 import org.jclouds.s3.domain.S3Object;
-import org.jclouds.s3.functions.ReturnFalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists;
+import org.jclouds.s3.fallbacks.FalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists;
 import org.jclouds.s3.options.CopyObjectOptions;
 import org.jclouds.s3.options.PutBucketOptions;
 import org.jclouds.s3.options.PutObjectOptions;
@@ -60,7 +59,6 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 
 /**
  * @author Adrian Cole
@@ -90,7 +88,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, LocationConstraintHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -110,7 +108,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseETagHeader.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -134,7 +132,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, LocationConstraintHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -152,15 +150,9 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists.class);
+      assertFallbackClassEquals(method, FalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists.class);
 
       checkFilters(request);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AWSS3AsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AWSS3AsyncClient>>() {
-      };
    }
 
    public void testInitiateMultipartUpload() throws SecurityException, NegativeArraySizeException,
@@ -188,7 +180,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, UploadIdFromHttpResponseViaRegex.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
    }
@@ -205,7 +197,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -222,7 +214,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseETagHeader.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
    }
@@ -243,7 +235,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ETagFromHttpResponseViaRegex.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
    }
@@ -262,7 +254,7 @@ public class AWSS3AsyncClientTest extends S3AsyncClientTest<AWSS3AsyncClient> {
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists.class);
+      assertFallbackClassEquals(method, FalseIfBucketAlreadyOwnedByYouOrOperationAbortedWhenBucketExists.class);
 
       checkFilters(request);
    }

@@ -18,15 +18,13 @@
  */
 package org.jclouds.ec2.compute;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Properties;
-import java.util.Set;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
+import com.google.inject.Module;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
@@ -59,19 +57,20 @@ import org.jclouds.util.InetAddresses2;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.net.HostAndPort;
-import com.google.inject.Module;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * 
  * @author Adrian Cole
  */
-@Test(groups = "live", singleThreaded = true)
+@Test(groups = "live", singleThreaded = true, enabled = false)
 public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
 
    protected TemplateBuilderSpec ebsTemplate;
@@ -85,13 +84,14 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       return new SshjSshClientModule();
    }
 
-   // normal ec2 does not support metadata
    @Override
-   protected void checkUserMetadataInNodeEquals(NodeMetadata node, ImmutableMap<String, String> userMetadata) {
-      assert node.getUserMetadata().equals(ImmutableMap.<String, String> of()) : String.format(
-            "node userMetadata did not match %s %s", userMetadata, node);
+   protected void checkUserMetadataContains(NodeMetadata node, ImmutableMap<String, String> userMetadata) {
+      if (view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi().getTagApi().isPresent()) {
+         super.checkUserMetadataContains(node, userMetadata);
+      } else {
+         assertTrue(node.getUserMetadata().isEmpty(), "not expecting metadata when tag extension isn't present" + node);
+      }
    }
-   
 
    @Test(enabled = true, dependsOnMethods = "testCorrectAuthException")
    public void testImagesResolveCorrectly() {
@@ -324,7 +324,7 @@ public class EC2ComputeServiceLiveTest extends BaseComputeServiceLiveTest {
       return instance;
    }
 
-   public static void cleanupExtendedStuffInRegion(String region, SecurityGroupClient securityGroupClient,
+   protected static void cleanupExtendedStuffInRegion(String region, SecurityGroupClient securityGroupClient,
             KeyPairClient keyPairClient, String group) throws InterruptedException {
       try {
          for (SecurityGroup secgroup : securityGroupClient.describeSecurityGroupsInRegion(region))

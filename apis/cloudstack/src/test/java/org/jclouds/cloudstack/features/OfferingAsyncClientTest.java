@@ -23,6 +23,8 @@ import static org.jclouds.cloudstack.domain.NetworkOfferingAvailabilityType.DEFA
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.cloudstack.options.ListDiskOfferingsOptions;
 import org.jclouds.cloudstack.options.ListNetworkOfferingsOptions;
@@ -30,13 +32,9 @@ import org.jclouds.cloudstack.options.ListServiceOfferingsOptions;
 import org.jclouds.functions.IdentityFunction;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Functions;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code OfferingAsyncClient}
@@ -58,7 +56,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -75,7 +73,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -93,7 +91,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -110,7 +108,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -129,7 +127,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -147,7 +145,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -164,7 +162,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -183,7 +181,7 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -201,15 +199,9 @@ public class OfferingAsyncClientTest extends BaseCloudStackAsyncClientTest<Offer
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<OfferingAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<OfferingAsyncClient>>() {
-      };
    }
 }

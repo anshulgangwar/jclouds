@@ -18,22 +18,10 @@
  */
 package org.jclouds.cloudstack.ec2.config;
 
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import org.jclouds.cloudstack.ec2.CloudStackEC2AsyncClient;
-import org.jclouds.cloudstack.ec2.CloudStackEC2Client;
-import org.jclouds.cloudstack.ec2.services.CloudStackAMIAsyncClient;
-import org.jclouds.cloudstack.ec2.services.CloudStackAMIClient;
-import org.jclouds.cloudstack.ec2.services.CloudStackEC2InstanceAsyncClient;
-import org.jclouds.cloudstack.ec2.services.CloudStackEC2InstanceClient;
-import org.jclouds.cloudstack.ec2.suppliers.CloudStackEC2DescribeRegionsForRegionURIs;
-import org.jclouds.cloudstack.ec2.xml.CloudStackEC2CreateVolumeResponseHandler;
-import org.jclouds.cloudstack.ec2.xml.CloudStackEC2DescribeImagesResponseHandler;
-import org.jclouds.cloudstack.ec2.xml.CloudStackEC2DescribeInstancesResponseHandler;
-import org.jclouds.cloudstack.ec2.xml.CloudStackEC2DescribeVolumesResponseHandler;
-import org.jclouds.cloudstack.ec2.xml.CloudStackEC2RunInstancesResponseHandler;
 import org.jclouds.ec2.EC2AsyncClient;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.config.EC2RestClientModule;
@@ -52,14 +40,10 @@ import org.jclouds.ec2.services.SecurityGroupClient;
 import org.jclouds.ec2.services.WindowsAsyncClient;
 import org.jclouds.ec2.services.WindowsClient;
 import org.jclouds.ec2.suppliers.DescribeAvailabilityZonesInRegion;
-import org.jclouds.ec2.xml.CreateVolumeResponseHandler;
-import org.jclouds.ec2.xml.DescribeImagesResponseHandler;
-import org.jclouds.ec2.xml.DescribeInstancesResponseHandler;
-import org.jclouds.ec2.xml.DescribeVolumesResponseHandler;
-import org.jclouds.ec2.xml.RunInstancesResponseHandler;
 import org.jclouds.http.HttpRetryHandler;
 import org.jclouds.http.IOExceptionRetryHandler;
 import org.jclouds.http.annotation.ClientError;
+import org.jclouds.location.Provider;
 import org.jclouds.location.config.LocationModule;
 import org.jclouds.location.suppliers.RegionIdToURISupplier;
 import org.jclouds.location.suppliers.RegionIdToZoneIdsSupplier;
@@ -71,18 +55,20 @@ import org.jclouds.location.suppliers.derived.ZoneIdToURIFromJoinOnRegionIdToURI
 import org.jclouds.location.suppliers.derived.ZoneIdsFromRegionIdToZoneIdsValues;
 import org.jclouds.rest.ConfiguresRestClient;
 
-import javax.inject.Singleton;
 import java.util.Map;
 
+
 /**
+ * 
  * @author Adrian Cole
  */
 @ConfiguresRestClient
-public class CloudStackEC2RestClientModule extends EC2RestClientModule<CloudStackEC2Client, CloudStackEC2AsyncClient> {
+public class CloudStackEC2RestClientModule extends EC2RestClientModule<EC2Client, EC2AsyncClient> {
+
    public static final Map<Class<?>, Class<?>> DELEGATE_MAP = ImmutableMap.<Class<?>, Class<?>>builder()//
-           .put(CloudStackAMIClient.class, CloudStackAMIAsyncClient.class)//
+           .put(org.jclouds.ec2.services.AMIClient.class, org.jclouds.ec2.services.AMIAsyncClient.class)//
            .put(ElasticIPAddressClient.class, ElasticIPAddressAsyncClient.class)//
-           .put(CloudStackEC2InstanceClient.class, CloudStackEC2InstanceAsyncClient.class)//
+           .put(org.jclouds.ec2.services.InstanceClient.class, org.jclouds.ec2.services.InstanceAsyncClient.class)//
            .put(KeyPairClient.class, KeyPairAsyncClient.class)//
            .put(SecurityGroupClient.class, SecurityGroupAsyncClient.class)//
            .put(WindowsClient.class, WindowsAsyncClient.class)//
@@ -92,18 +78,21 @@ public class CloudStackEC2RestClientModule extends EC2RestClientModule<CloudStac
            .build();
 
    public CloudStackEC2RestClientModule() {
-      super(TypeToken.of(CloudStackEC2Client.class), TypeToken.of(CloudStackEC2AsyncClient.class), DELEGATE_MAP);
+      super(TypeToken.of(EC2Client.class), TypeToken.of(EC2AsyncClient.class), DELEGATE_MAP);
    }
 
-   @Override
+
+   /*@Override
    protected void configure() {
       super.configure();
-      bind(DescribeImagesResponseHandler.class).to(CloudStackEC2DescribeImagesResponseHandler.class);
-      bind(RunInstancesResponseHandler.class).to(CloudStackEC2RunInstancesResponseHandler.class);
-      bind(DescribeInstancesResponseHandler.class).to(CloudStackEC2DescribeInstancesResponseHandler.class);
-      bind(DescribeVolumesResponseHandler.class).to(CloudStackEC2DescribeVolumesResponseHandler.class);
-      bind(CreateVolumeResponseHandler.class).to(CloudStackEC2CreateVolumeResponseHandler.class);
+      // override parsers, etc. here
+      // ex.
+      // bind(DescribeImagesResponseHandler.class).to(CloudStackDescribeImagesResponseHandler.class);
    }
+
+}
+=======
+   }*/
 
    @Override
    protected void installLocations() {
@@ -124,15 +113,22 @@ public class CloudStackEC2RestClientModule extends EC2RestClientModule<CloudStac
       bind(IOExceptionRetryHandler.class).toInstance(IOExceptionRetryHandler.NEVER_RETRY);
    }
 
-   @Singleton
-   @Provides
-   EC2Client provide(CloudStackEC2Client in) {
-      return in;
-   }
 
-   @Singleton
-   @Provides
-   EC2AsyncClient provide(CloudStackEC2AsyncClient in) {
-      return in;
+   private static class CloudStackEC2DescribeRegionsForRegionURIs extends org.jclouds.ec2.suppliers
+           .DescribeRegionsForRegionURIs {
+      private com.google.common.base.Supplier<java.net.URI> defaultURISupplier;
+
+      @javax.inject.Inject
+      public CloudStackEC2DescribeRegionsForRegionURIs(@Provider com.google.common.base
+              .Supplier<java.net.URI> defaultURISupplier, EC2Client client) {
+         super(client);
+         this.defaultURISupplier = defaultURISupplier;
+      }
+
+      @Override
+      public Map<String, com.google.common.base.Supplier<java.net.URI>> get() {
+         return ImmutableMap.of("AmazonEC2", defaultURISupplier);
+      }
    }
 }
+

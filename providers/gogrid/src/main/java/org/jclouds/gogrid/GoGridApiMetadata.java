@@ -18,6 +18,9 @@
  */
 package org.jclouds.gogrid;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -40,6 +43,7 @@ import com.google.inject.Module;
 public class GoGridApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<GoGridClient, GoGridAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<GoGridClient, GoGridAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
    
    @Override
@@ -57,12 +61,13 @@ public class GoGridApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(90) + "");
       properties.setProperty("jclouds.ssh.max-retries", "5");
       properties.setProperty("jclouds.ssh.retry-auth", "true");
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(GoGridClient.class, GoGridAsyncClient.class);
@@ -84,11 +89,8 @@ public class GoGridApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

@@ -18,13 +18,12 @@
  */
 package org.jclouds.s3.xml;
 
+import static com.google.common.io.BaseEncoding.base16;
+import static org.jclouds.http.Uris.uriBuilder;
 import static org.jclouds.util.SaxUtils.currentOrNull;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.ws.rs.core.UriBuilder;
 
-import org.jclouds.crypto.CryptoStreams;
 import org.jclouds.date.DateService;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.s3.domain.CanonicalUser;
@@ -56,7 +55,6 @@ public class ListBucketHandler extends ParseSax.HandlerWithResult<ListBucketResp
 
    private ObjectMetadataBuilder builder = new ObjectMetadataBuilder();
 
-   private final Provider<UriBuilder> uriBuilders;
    private final DateService dateParser;
 
    private String bucketName;
@@ -67,9 +65,8 @@ public class ListBucketHandler extends ParseSax.HandlerWithResult<ListBucketResp
    private boolean isTruncated;
 
    @Inject
-   public ListBucketHandler(DateService dateParser, Provider<UriBuilder> uriBuilders) {
+   public ListBucketHandler(DateService dateParser) {
       this.dateParser = dateParser;
-      this.uriBuilders = uriBuilders;
    }
 
    public ListBucketResponse getResult() {
@@ -96,13 +93,13 @@ public class ListBucketHandler extends ParseSax.HandlerWithResult<ListBucketResp
       } else if (qName.equals("Key")) { // content stuff
          currentKey = currentOrNull(currentText);
          builder.key(currentKey);
-         builder.uri(uriBuilders.get().uri(getRequest().getEndpoint()).path(currentKey).replaceQuery("").build());
+         builder.uri(uriBuilder(getRequest().getEndpoint()).clearQuery().appendPath(currentKey).build());
       } else if (qName.equals("LastModified")) {
          builder.lastModified(dateParser.iso8601DateParse(currentOrNull(currentText)));
       } else if (qName.equals("ETag")) {
          String currentETag = currentOrNull(currentText);
          builder.eTag(currentETag);
-         builder.contentMD5(CryptoStreams.hex(Strings2.replaceAll(currentETag, '"', "")));
+         builder.contentMD5(base16().lowerCase().decode(Strings2.replaceAll(currentETag, '"', "")));
       } else if (qName.equals("Size")) {
          builder.contentLength(Long.valueOf(currentOrNull(currentText)));
       } else if (qName.equals("Owner")) {

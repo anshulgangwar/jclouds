@@ -32,15 +32,14 @@ import org.jclouds.location.Region;
 import org.jclouds.openstack.keystone.v2_0.filters.AuthenticateRequest;
 import org.jclouds.openstack.swift.CommonSwiftAsyncClient;
 import org.jclouds.openstack.swift.Storage;
+import org.jclouds.openstack.swift.SwiftFallbacks.TrueOn404FalseOn409;
 import org.jclouds.openstack.swift.domain.ContainerMetadata;
-import org.jclouds.openstack.swift.functions.ReturnTrueOn404FalseOn409;
 import org.jclouds.openstack.swift.options.ListContainerOptions;
 import org.jclouds.rest.annotations.Delegate;
 import org.jclouds.rest.annotations.Endpoint;
-import org.jclouds.rest.annotations.ExceptionParser;
+import org.jclouds.rest.annotations.Fallback;
 import org.jclouds.rest.annotations.QueryParams;
 import org.jclouds.rest.annotations.RequestFilters;
-import org.jclouds.rest.annotations.SkipEncoding;
 
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -59,7 +58,6 @@ import com.google.inject.Provides;
  *      Storage API</a>
  * @author Jeremy Daggett
  */
-@SkipEncoding('/')
 @RequestFilters(AuthenticateRequest.class)
 @Endpoint(Storage.class)
 public interface HPCloudObjectStorageAsyncApi extends CommonSwiftAsyncClient {
@@ -84,7 +82,7 @@ public interface HPCloudObjectStorageAsyncApi extends CommonSwiftAsyncClient {
     * @see org.jclouds.openstack.swift.CommonSwiftClient#deleteContainerIfEmpty
     */
    @DELETE
-   @ExceptionParser(ReturnTrueOn404FalseOn409.class)
+   @Fallback(TrueOn404FalseOn409.class)
    @Path("/{container}")
    ListenableFuture<Boolean> deleteContainerIfEmpty(@PathParam("container") String container);
 

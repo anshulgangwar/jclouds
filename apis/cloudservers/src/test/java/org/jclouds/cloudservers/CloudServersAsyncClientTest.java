@@ -38,6 +38,10 @@ import java.util.Properties;
 import javax.inject.Singleton;
 import javax.ws.rs.core.MediaType;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.FalseOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.cloudservers.config.CloudServersRestClientModule;
 import org.jclouds.cloudservers.domain.BackupSchedule;
@@ -49,9 +53,9 @@ import org.jclouds.cloudservers.options.CreateSharedIpGroupOptions;
 import org.jclouds.cloudservers.options.ListOptions;
 import org.jclouds.cloudservers.options.RebuildServerOptions;
 import org.jclouds.domain.Credentials;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.http.functions.ReturnFalseOn404;
 import org.jclouds.http.functions.ReturnTrueIf2xx;
 import org.jclouds.http.functions.UnwrapOnlyJsonValue;
 import org.jclouds.openstack.filters.AddTimestampQuery;
@@ -60,19 +64,12 @@ import org.jclouds.openstack.keystone.v1_1.config.AuthenticationServiceModule.Ge
 import org.jclouds.openstack.keystone.v1_1.domain.Auth;
 import org.jclouds.openstack.keystone.v1_1.parse.ParseAuthTest;
 import org.jclouds.rest.ConfiguresRestClient;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnFalseOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
 import org.jclouds.rest.internal.BaseAsyncClientTest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
 import com.google.inject.Provides;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code CloudServersAsyncClient}
@@ -99,7 +96,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -118,7 +115,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -138,7 +135,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -158,7 +155,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -180,7 +177,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -195,7 +192,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, FalseOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -210,7 +207,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -225,7 +222,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -243,7 +240,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -258,7 +255,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -273,7 +270,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -288,7 +285,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -304,7 +301,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -319,7 +316,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -335,7 +332,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -350,7 +347,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -365,7 +362,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -380,7 +377,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -396,7 +393,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -412,7 +409,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -427,7 +424,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -442,7 +439,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, FalseOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -459,7 +456,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -477,7 +474,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -494,7 +491,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
 
@@ -513,7 +510,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOn404.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
 
@@ -529,7 +526,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, FalseOnNotFoundOr404.class);
 
       checkFilters(request);
 
@@ -545,7 +542,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -561,7 +558,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -577,7 +574,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -593,7 +590,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -608,7 +605,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -624,7 +621,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -639,7 +636,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -658,7 +655,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -676,7 +673,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -691,7 +688,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReturnTrueIf2xx.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, FalseOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -706,7 +703,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -721,7 +718,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -736,7 +733,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -751,7 +748,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
    }
@@ -767,7 +764,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -787,7 +784,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -803,7 +800,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -818,7 +815,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -833,7 +830,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
 
@@ -849,7 +846,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -864,15 +861,9 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<CloudServersAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<CloudServersAsyncClient>>() {
-      };
    }
 
    @Override
@@ -896,7 +887,7 @@ public class CloudServersAsyncClientTest extends BaseAsyncClientTest<CloudServer
       GetAuth provideGetAuth() {
          return new GetAuth(null) {
             @Override
-            public Auth apply(Credentials in) {
+            public Auth load(Credentials in) {
                return new ParseAuthTest().expected();
             }
          };

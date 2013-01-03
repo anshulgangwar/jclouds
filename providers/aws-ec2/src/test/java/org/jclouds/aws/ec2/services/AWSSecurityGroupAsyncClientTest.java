@@ -21,6 +21,8 @@ package org.jclouds.aws.ec2.services;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.aws.ec2.options.CreateSecurityGroupOptions;
 import org.jclouds.aws.ec2.xml.CreateSecurityGroupResponseHandler;
 import org.jclouds.ec2.domain.IpPermission;
@@ -30,13 +32,9 @@ import org.jclouds.ec2.xml.DescribeSecurityGroupsResponseHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code AWSSecurityGroupAsyncClient}
@@ -63,7 +61,7 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -80,7 +78,7 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeSecurityGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -97,7 +95,7 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeSecurityGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -115,7 +113,7 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, CreateSecurityGroupResponseHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -129,12 +127,12 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=AuthorizeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=-1&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=0.0.0.0%2F0",
+            "Action=AuthorizeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=-1&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=0.0.0.0/0",
             "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -150,12 +148,12 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=AuthorizeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=tcp&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=1.1.1.1%2F32&IpPermissions.1.IpProtocol=icmp&IpPermissions.1.FromPort=8&IpPermissions.1.ToPort=0&IpPermissions.1.Groups.0.GroupId=groupId",
+            "Action=AuthorizeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=tcp&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=1.1.1.1/32&IpPermissions.1.IpProtocol=icmp&IpPermissions.1.FromPort=8&IpPermissions.1.ToPort=0&IpPermissions.1.Groups.0.GroupId=groupId",
             "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -169,12 +167,12 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=RevokeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=-1&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=0.0.0.0%2F0",
+            "Action=RevokeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=-1&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=0.0.0.0/0",
             "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -190,20 +188,13 @@ public class AWSSecurityGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<A
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=RevokeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=tcp&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=1.1.1.1%2F32&IpPermissions.1.IpProtocol=icmp&IpPermissions.1.FromPort=8&IpPermissions.1.ToPort=0&IpPermissions.1.Groups.0.GroupId=groupId",
+            "Action=RevokeSecurityGroupIngress&GroupId=group&IpPermissions.0.IpProtocol=tcp&IpPermissions.0.FromPort=1&IpPermissions.0.ToPort=65535&IpPermissions.0.IpRanges.0.CidrIp=1.1.1.1/32&IpPermissions.1.IpProtocol=icmp&IpPermissions.1.FromPort=8&IpPermissions.1.ToPort=0&IpPermissions.1.Groups.0.GroupId=groupId",
             "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AWSSecurityGroupAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AWSSecurityGroupAsyncClient>>() {
-      };
-   }
-
 }

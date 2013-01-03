@@ -28,24 +28,18 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.inject.Provider;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
-import javax.ws.rs.core.UriBuilder;
 
 import org.jclouds.date.internal.DateServiceDateCodecFactory;
-import org.jclouds.date.internal.DateServiceDateCodecFactory.DateServiceIso8601Codec;
-import org.jclouds.date.internal.DateServiceDateCodecFactory.DateServiceRfc1123Codec;
 import org.jclouds.date.internal.SimpleDateFormatDateService;
 import org.jclouds.http.BaseJettyTest;
 import org.jclouds.http.HttpCommand;
+import org.jclouds.http.HttpCommandExecutorService;
 import org.jclouds.http.HttpResponse;
 import org.jclouds.http.HttpUtils;
 import org.jclouds.http.IntegrationTestAsyncClient;
-import org.jclouds.http.TransformingHttpCommandExecutorServiceImpl;
-import org.jclouds.http.TransformingHttpCommandImpl;
-import org.jclouds.http.functions.ReturnStringIf2xx;
 import org.jclouds.http.internal.HttpWire;
 import org.jclouds.http.internal.JavaUrlHttpCommandExecutorService;
 import org.jclouds.io.ContentMetadataCodec;
@@ -56,9 +50,6 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Supplier;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
-import com.sun.jersey.api.uri.UriBuilderImpl;
 
 @Test(groups = "unit", testName = "BackoffLimitedRetryHandlerTest")
 public class BackoffLimitedRetryHandlerTest {
@@ -102,15 +93,7 @@ public class BackoffLimitedRetryHandlerTest {
 
    }
 
-   TransformingHttpCommandExecutorServiceImpl executorService;
-   Provider<UriBuilder> uriBuilderProvider = new Provider<UriBuilder>() {
-
-      @Override
-      public UriBuilder get() {
-         return new UriBuilderImpl();
-      }
-
-   };
+   HttpCommandExecutorService http;
 
    @BeforeTest
    void setupExecutorService() throws Exception {
@@ -118,10 +101,9 @@ public class BackoffLimitedRetryHandlerTest {
       BackoffLimitedRetryHandler backoff = new BackoffLimitedRetryHandler();
       HttpUtils utils = new HttpUtils(0, 500, 1, 1);
       ContentMetadataCodec contentMetadataCodec = new DefaultContentMetadataCodec(new DateServiceDateCodecFactory(
-               new DateServiceRfc1123Codec(new SimpleDateFormatDateService()), new DateServiceIso8601Codec(
-                        new SimpleDateFormatDateService())));
-      RedirectionRetryHandler retry = new RedirectionRetryHandler(uriBuilderProvider, backoff);
-      JavaUrlHttpCommandExecutorService httpService = new JavaUrlHttpCommandExecutorService(utils, 
+            new SimpleDateFormatDateService()));
+      RedirectionRetryHandler retry = new RedirectionRetryHandler(backoff);
+      http = new JavaUrlHttpCommandExecutorService(utils, 
                contentMetadataCodec, execService,
                new DelegatingRetryHandler(backoff, retry), new BackoffLimitedRetryHandler(),
                new DelegatingErrorHandler(), new HttpWire(), new HostnameVerifier() {
@@ -138,7 +120,6 @@ public class BackoffLimitedRetryHandlerTest {
                   }
 
                });
-      executorService = new TransformingHttpCommandExecutorServiceImpl(httpService, execService);
    }
 
    @Test
@@ -184,16 +165,13 @@ public class BackoffLimitedRetryHandlerTest {
       assertEquals(response.getPayload().getInput().read(), -1);
    }
 
-   private final RestAnnotationProcessor<IntegrationTestAsyncClient> processor = BaseJettyTest.newBuilder(8100,
-            new Properties()).buildInjector().getInstance(
-            Key.get(new TypeLiteral<RestAnnotationProcessor<IntegrationTestAsyncClient>>() {
-            }));
+   private final RestAnnotationProcessor processor = BaseJettyTest.newBuilder(8100, new Properties()).buildInjector()
+         .getInstance(RestAnnotationProcessor.Factory.class).declaring(IntegrationTestAsyncClient.class);
 
    private HttpCommand createCommand() throws SecurityException, NoSuchMethodException {
       Method method = IntegrationTestAsyncClient.class.getMethod("download", String.class);
 
-      return new TransformingHttpCommandImpl<String>(executorService, processor.createRequest(method, "1"),
-               new ReturnStringIf2xx());
+      return new HttpCommand(processor.createRequest(method, "1"));
    }
 
    @Test

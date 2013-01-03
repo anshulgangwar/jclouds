@@ -18,15 +18,24 @@
  */
 package org.jclouds.ec2;
 
+
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
 import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
 import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
 import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_GENERATE_INSTANCE_NAMES;
 import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT;
 
 import java.net.URI;
 import java.util.Properties;
+
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Module;
 
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.ec2.compute.EC2ComputeServiceContext;
@@ -36,9 +45,19 @@ import org.jclouds.ec2.config.EC2RestClientModule;
 import org.jclouds.rest.RestContext;
 import org.jclouds.rest.internal.BaseRestApiMetadata;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Module;
+import java.net.URI;
+import java.util.Properties;
+
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_SO_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
+import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT;
 
 /**
  * Implementation of {@link ApiMetadata} for Amazon's EC2 api.
@@ -60,34 +79,48 @@ import com.google.inject.Module;
 public class EC2ApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<? extends EC2Client, ? extends EC2AsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<? extends EC2Client, ? extends EC2AsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
-   public Builder toBuilder() {
-      return (Builder) new Builder(getApi(), getAsyncApi()).fromApiMetadata(this);
+   public Builder<?> toBuilder() {
+      return new ConcreteBuilder().fromApiMetadata(this);
    }
 
    public EC2ApiMetadata() {
-      this(new Builder(EC2Client.class, EC2AsyncClient.class));
+      this(new ConcreteBuilder());
    }
 
-   protected EC2ApiMetadata(Builder builder) {
+   protected EC2ApiMetadata(Builder<?> builder) {
       super(builder);
    }
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(3) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AMIClient.describeImagesInRegion", MINUTES.toMillis(5) + "");
       properties.setProperty(PROPERTY_AUTH_TAG, "AWS");
       properties.setProperty(PROPERTY_HEADER_TAG, "amz");
       properties.setProperty(PROPERTY_EC2_AMI_OWNERS, "*");
       properties.setProperty(PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT, "500");
       properties.setProperty(PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS, "false");
       properties.setProperty(RESOURCENAME_DELIMITER, "#");
+
+      properties.setProperty(PROPERTY_EC2_GENERATE_INSTANCE_NAMES, "true");
+
+      properties.setProperty(PROPERTY_CONNECTION_TIMEOUT, MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_SO_TIMEOUT, MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AmiClient.createImageInRegion", MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "InstanceClient.runInstancesInRegion",
+              MINUTES.toMillis(10) + "");
+
       return properties;
    }
 
-   public static class Builder
-         extends BaseRestApiMetadata.Builder {
+   public static abstract class Builder<T extends Builder<T>> extends BaseRestApiMetadata.Builder<T> {
+      protected Builder() {
+         this(EC2Client.class, EC2AsyncClient.class);
+      }
 
       protected Builder(Class<?> syncClient, Class<?> asyncClient) {
          super(syncClient, asyncClient);
@@ -108,13 +141,12 @@ public class EC2ApiMetadata extends BaseRestApiMetadata {
       public ApiMetadata build() {
          return new EC2ApiMetadata(this);
       }
-
+   }
+   
+   private static class ConcreteBuilder extends Builder<ConcreteBuilder> {
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected ConcreteBuilder self() {
          return this;
       }
-
    }
-
 }

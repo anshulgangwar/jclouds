@@ -18,18 +18,22 @@
  */
 package org.jclouds.crypto;
 
+import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Splitter.fixedLength;
 import static com.google.common.base.Throwables.propagate;
-import static org.jclouds.crypto.CryptoStreams.base64;
-import static org.jclouds.crypto.CryptoStreams.hex;
-import static org.jclouds.crypto.CryptoStreams.md5;
+import static com.google.common.collect.Iterables.get;
+import static com.google.common.collect.Iterables.size;
+import static com.google.common.io.BaseEncoding.base16;
+import static com.google.common.io.BaseEncoding.base64;
+import static org.jclouds.crypto.Pems.pem;
 import static org.jclouds.crypto.Pems.privateKeySpec;
+import static org.jclouds.util.Strings2.toStringAndClose;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -44,17 +48,14 @@ import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Map;
 
-import org.bouncycastle.openssl.PEMWriter;
 import org.jclouds.io.InputSuppliers;
-import org.jclouds.util.Strings2;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.Iterables;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.InputSupplier;
 
 /**
@@ -80,8 +81,7 @@ public class SshKeys {
       try {
          return publicKeySpecFromOpenSSH(InputSuppliers.of(idRsaPub));
       } catch (IOException e) {
-         propagate(e);
-         return null;
+         throw propagate(e);
       }
    }
 
@@ -98,10 +98,10 @@ public class SshKeys {
    public static RSAPublicKeySpec publicKeySpecFromOpenSSH(InputSupplier<? extends InputStream> supplier)
             throws IOException {
       InputStream stream = supplier.getInput();
-      Iterable<String> parts = Splitter.on(' ').split(Strings2.toStringAndClose(stream));
-      checkArgument(Iterables.size(parts) >= 2 && "ssh-rsa".equals(Iterables.get(parts, 0)),
+      Iterable<String> parts = Splitter.on(' ').split(toStringAndClose(stream).trim());
+      checkArgument(size(parts) >= 2 && "ssh-rsa".equals(get(parts, 0)),
                "bad format, should be: ssh-rsa AAAAB3...");
-      stream = new ByteArrayInputStream(CryptoStreams.base64(Iterables.get(parts, 1)));
+      stream = new ByteArrayInputStream(base64().decode(get(parts, 1)));
       String marker = new String(readLengthFirst(stream));
       checkArgument("ssh-rsa".equals(marker), "looking for marker ssh-rsa but got %s", marker);
       BigInteger publicExponent = new BigInteger(readLengthFirst(stream));
@@ -142,8 +142,7 @@ public class SshKeys {
       try {
          return generate(KeyPairGenerator.getInstance("RSA"), new SecureRandom());
       } catch (NoSuchAlgorithmException e) {
-         propagate(e);
-         return null;
+         throw propagate(e);
       }
    }
 
@@ -151,28 +150,13 @@ public class SshKeys {
       KeyPair pair = generateRsaKeyPair(generator, rand);
       Builder<String, String> builder = ImmutableMap.builder();
       builder.put("public", encodeAsOpenSSH(RSAPublicKey.class.cast(pair.getPublic())));
-      builder.put("private", encodeAsPem(RSAPrivateKey.class.cast(pair.getPrivate())));
+      builder.put("private", pem(RSAPrivateKey.class.cast(pair.getPrivate())));
       return builder.build();
    }
 
    public static String encodeAsOpenSSH(RSAPublicKey key) {
       byte[] keyBlob = keyBlob(key.getPublicExponent(), key.getModulus());
-      return "ssh-rsa " + base64(keyBlob);
-   }
-
-   public static String encodeAsPem(RSAPrivateKey key) {
-      StringWriter stringWriter = new StringWriter();
-      PEMWriter pemFormatWriter = new PEMWriter(stringWriter);
-      try {
-         pemFormatWriter.writeObject(key);
-         pemFormatWriter.close();
-      } catch (IOException e) {
-         Throwables.propagate(e);
-      }
-      return stringWriter.toString();
-      // TODO: understand why pem isn't passing testCanGenerate where keys are
-      // checked to match.
-      // return pem(key.getEncoded(), PRIVATE_PKCS1_MARKER, 64);
+      return "ssh-rsa " + base64().encode(keyBlob);
    }
 
    /**
@@ -286,17 +270,12 @@ public class SshKeys {
     */
    public static String sha1(RSAPrivateCrtKeySpec privateKey) {
       try {
-         String sha1 = Joiner.on(":").join(
-                  Splitter.fixedLength(2).split(
-                           hex(CryptoStreams.sha1(KeyFactory.getInstance("RSA").generatePrivate(privateKey)
-                                    .getEncoded()))));
-         return sha1;
+         byte[] encodedKey = KeyFactory.getInstance("RSA").generatePrivate(privateKey).getEncoded();
+         return hexColonDelimited(Hashing.sha1().hashBytes(encodedKey));
       } catch (InvalidKeySpecException e) {
-         propagate(e);
-         return null;
+         throw propagate(e);
       } catch (NoSuchAlgorithmException e) {
-         propagate(e);
-         return null;
+         throw propagate(e);
       }
    }
 
@@ -329,7 +308,11 @@ public class SshKeys {
     */
    public static String fingerprint(BigInteger publicExponent, BigInteger modulus) {
       byte[] keyBlob = keyBlob(publicExponent, modulus);
-      return Joiner.on(":").join(Splitter.fixedLength(2).split(hex(md5(keyBlob))));
+      return hexColonDelimited(Hashing.md5().hashBytes(keyBlob));
+   }
+
+   private static String hexColonDelimited(HashCode hc) {
+      return on(':').join(fixedLength(2).split(base16().lowerCase().encode(hc.asBytes())));
    }
 
    public static byte[] keyBlob(BigInteger publicExponent, BigInteger modulus) {
@@ -340,8 +323,7 @@ public class SshKeys {
          writeLengthFirst(modulus.toByteArray(), out);
          return out.toByteArray();
       } catch (IOException e) {
-         propagate(e);
-         return null;
+         throw propagate(e);
       }
    }
 

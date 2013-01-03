@@ -21,6 +21,8 @@ package org.jclouds.cloudstack.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.cloudstack.domain.ExtractMode;
 import org.jclouds.cloudstack.domain.Template;
 import org.jclouds.cloudstack.domain.TemplateFilter;
@@ -34,20 +36,16 @@ import org.jclouds.cloudstack.options.ListTemplatesOptions;
 import org.jclouds.cloudstack.options.RegisterTemplateOptions;
 import org.jclouds.cloudstack.options.UpdateTemplateOptions;
 import org.jclouds.cloudstack.options.UpdateTemplatePermissionsOptions;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.functions.IdentityFunction;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
 import org.jclouds.http.functions.UnwrapOnlyJsonValue;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code TemplateAsyncClient}
@@ -69,7 +67,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -84,7 +82,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -93,13 +91,13 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
       Method method = TemplateAsyncClient.class.getMethod("registerTemplate", TemplateMetadata.class, String.class, String.class, String.class, String.class, RegisterTemplateOptions[].class);
       HttpRequest httpRequest = processor.createRequest(method, TemplateMetadata.builder().name("thename").osTypeId("10").displayText("description").build(), Template.Format.QCOW2, "xen", "http://example.com/", 20);
 
-      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=registerTemplate&hypervisor=xen&format=QCOW2&url=http%3A%2F%2Fexample.com%2F&zoneid=20&name=thename&ostypeid=10&displaytext=description HTTP/1.1");
+      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=registerTemplate&hypervisor=xen&format=QCOW2&url=http%3A//example.com/&zoneid=20&name=thename&ostypeid=10&displaytext=description HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -109,13 +107,13 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
       HttpRequest httpRequest = processor.createRequest(method, TemplateMetadata.builder().name("thename").osTypeId("10").displayText("description").build(), Template.Format.QCOW2, "xen", "http://example.com/", 20,
          RegisterTemplateOptions.Builder.accountInDomain("mydomain", "3").bits(32).checksum("ABC").isExtractable(true).isFeatured(true).isPublic(true).passwordEnabled(true).requiresHVM(true));
 
-      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=registerTemplate&hypervisor=xen&format=QCOW2&url=http%3A%2F%2Fexample.com%2F&zoneid=20&account=mydomain&domainid=3&bits=32&checksum=ABC&isextractable=true&isfeatured=true&ispublic=true&passwordenabled=true&requireshvm=true&name=thename&ostypeid=10&displaytext=description HTTP/1.1");
+      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=registerTemplate&hypervisor=xen&format=QCOW2&url=http%3A//example.com/&zoneid=20&account=mydomain&domainid=3&bits=32&checksum=ABC&isextractable=true&isfeatured=true&ispublic=true&passwordenabled=true&requireshvm=true&name=thename&ostypeid=10&displaytext=description HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -130,7 +128,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -145,7 +143,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -160,7 +158,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -175,7 +173,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -190,7 +188,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -206,7 +204,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -228,7 +226,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -247,7 +245,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -263,7 +261,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -278,7 +276,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -293,7 +291,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -308,7 +306,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -323,7 +321,7 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -332,20 +330,14 @@ public class TemplateAsyncClientTest extends BaseCloudStackAsyncClientTest<Templ
       Method method = TemplateAsyncClient.class.getMethod("extractTemplate", String.class, ExtractMode.class, String.class, ExtractTemplateOptions[].class);
       HttpRequest httpRequest = processor.createRequest(method, 3, ExtractMode.HTTP_DOWNLOAD, 5, ExtractTemplateOptions.Builder.url("http://example.com/"));
 
-      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=extractTemplate&id=3&zoneid=5&mode=HTTP_DOWNLOAD&url=http%3A%2F%2Fexample.com%2F HTTP/1.1");
+      assertRequestLineEquals(httpRequest, "GET http://localhost:8080/client/api?response=json&command=extractTemplate&id=3&zoneid=5&mode=HTTP_DOWNLOAD&url=http%3A//example.com/ HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<TemplateAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<TemplateAsyncClient>>() {
-      };
    }
 }

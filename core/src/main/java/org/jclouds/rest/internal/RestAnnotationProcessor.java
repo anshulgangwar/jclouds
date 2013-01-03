@@ -17,22 +17,38 @@
  * under the License.
  */
 package org.jclouds.rest.internal;
-
+import static com.google.common.base.Functions.compose;
+import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Predicates.and;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.get;
 import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Multimaps.filterKeys;
+import static com.google.common.collect.Multimaps.transformValues;
 import static com.google.common.collect.Sets.newTreeSet;
+import static com.google.common.net.HttpHeaders.ACCEPT;
+import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
+import static com.google.common.net.HttpHeaders.HOST;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static javax.ws.rs.core.HttpHeaders.ACCEPT;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.HttpHeaders.HOST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static org.jclouds.http.Uris.uriBuilder;
 import static org.jclouds.io.Payloads.newPayload;
+import static org.jclouds.util.Strings2.replaceTokens;
 
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -42,30 +58,23 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.net.URI;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Resource;
-import javax.inject.Provider;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.MatrixParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriBuilderException;
 
 import org.jclouds.Constants;
 import org.jclouds.functions.IdentityFunction;
@@ -74,6 +83,7 @@ import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpRequestFilter;
 import org.jclouds.http.HttpResponse;
 import org.jclouds.http.HttpUtils;
+import org.jclouds.http.Uris.UriBuilder;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ParseJson;
 import org.jclouds.http.functions.ParseSax;
@@ -86,7 +96,6 @@ import org.jclouds.http.functions.ReturnStringIf2xx;
 import org.jclouds.http.functions.ReturnTrueIf2xx;
 import org.jclouds.http.functions.UnwrapOnlyJsonValue;
 import org.jclouds.http.options.HttpRequestOptions;
-import org.jclouds.http.utils.Queries;
 import org.jclouds.internal.ClassMethodArgs;
 import org.jclouds.io.ContentMetadata;
 import org.jclouds.io.ContentMetadataCodec;
@@ -107,12 +116,10 @@ import org.jclouds.rest.annotations.BinderParam;
 import org.jclouds.rest.annotations.BuildVersion;
 import org.jclouds.rest.annotations.Endpoint;
 import org.jclouds.rest.annotations.EndpointParam;
-import org.jclouds.rest.annotations.ExceptionParser;
 import org.jclouds.rest.annotations.FormParams;
 import org.jclouds.rest.annotations.Headers;
 import org.jclouds.rest.annotations.JAXBResponseParser;
 import org.jclouds.rest.annotations.MapBinder;
-import org.jclouds.rest.annotations.MatrixParams;
 import org.jclouds.rest.annotations.OnlyElement;
 import org.jclouds.rest.annotations.OverrideRequestFilters;
 import org.jclouds.rest.annotations.ParamParser;
@@ -131,39 +138,33 @@ import org.jclouds.rest.annotations.WrapWith;
 import org.jclouds.rest.annotations.XMLResponseParser;
 import org.jclouds.rest.binders.BindMapToStringPayload;
 import org.jclouds.rest.binders.BindToJsonPayloadWrappedWith;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.util.Maps2;
-import org.jclouds.util.Strings2;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.primitives.Chars;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.Assisted;
 import com.google.inject.util.Types;
 
 /**
@@ -171,12 +172,71 @@ import com.google.inject.util.Types;
  *
  * @author Adrian Cole
  */
-public class RestAnnotationProcessor<T> {
+public abstract class RestAnnotationProcessor {
+
+   public static interface Factory {
+      Declaring declaring(Class<?> declaring);
+      Caller caller(ClassMethodArgs caller);
+   }
+
+   public static final class Declaring extends RestAnnotationProcessor {
+      @Inject
+      private Declaring(Injector injector, LoadingCache<Class<?>, Cache<MethodKey, Method>> delegationMapCache,
+            @ApiVersion String apiVersion, @BuildVersion String buildVersion, ParseSax.Factory parserFactory,
+            HttpUtils utils, ContentMetadataCodec contentMetadataCodec, InputParamValidator inputParamValidator,
+            @Assisted Class<?> declaring) {
+         super(injector, delegationMapCache, apiVersion, buildVersion, parserFactory, utils, contentMetadataCodec,
+               inputParamValidator, declaring);
+      }
+   }
+
+   public static final class Caller extends RestAnnotationProcessor {
+      private final ClassMethodArgs caller;
+
+      @Inject
+      private Caller(Injector injector, LoadingCache<Class<?>, Cache<MethodKey, Method>> delegationMapCache,
+            @ApiVersion String apiVersion, @BuildVersion String buildVersion, ParseSax.Factory parserFactory,
+            HttpUtils utils, ContentMetadataCodec contentMetadataCodec, InputParamValidator inputParamValidator,
+            @Assisted ClassMethodArgs caller) {
+         super(injector, delegationMapCache, apiVersion, buildVersion, parserFactory, utils, contentMetadataCodec,
+               inputParamValidator, caller.getClazz());
+         // declaring class of method is the callee, this will lazily warm annotation cache
+         // until we have a better annotation cache warming approach
+         delegationMapCache.getUnchecked(caller.getMethod().getDeclaringClass());
+         this.caller = caller;
+      }
+
+      @Override
+      protected GeneratedHttpRequest.Builder requestBuilder() {
+         return super.requestBuilder().caller(caller);
+      }
+
+      @Override
+      protected Optional<URI> findEndpoint(Method method, Object... args) {
+         Optional<URI> endpoint = getEndpointFor(caller.getMethod(), caller.getArgs());
+         if (endpoint.isPresent())
+            logger.trace("using endpoint %s from caller %s for %s", endpoint, caller, cma(method, args));
+         else
+            endpoint = super.findEndpoint(method, args);
+         return endpoint;
+      }
+
+      @Override
+      protected Multimap<String, Object> addPathAndGetTokens(Class<?> clazz, Method method, Object[] args,
+            UriBuilder uriBuilder) {
+         Class<?> callerClass = caller.getMethod().getDeclaringClass();
+         return ImmutableMultimap.<String, Object> builder()
+               .putAll(super.addPathAndGetTokens(callerClass, caller.getMethod(), caller.getArgs(), uriBuilder))
+               .putAll(super.addPathAndGetTokens(clazz, method, args, uriBuilder)).build();
+      }
+   }
+
+   protected ClassMethodArgs cma(Method method, Object... args) {
+      return logger.isTraceEnabled() ? new ClassMethodArgs(method.getDeclaringClass(), method, args) : null;
+   }
 
    @Resource
    protected Logger logger = Logger.NULL;
-
-   private final Class<T> declaring;
 
    // TODO replace with Table object
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToBinderParamAnnotation = createMethodToIndexOfParamToAnnotation(BinderParam.class);
@@ -184,16 +244,26 @@ public class RestAnnotationProcessor<T> {
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToHeaderParamAnnotations = createMethodToIndexOfParamToAnnotation(HeaderParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToEndpointAnnotations = createMethodToIndexOfParamToAnnotation(Endpoint.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToEndpointParamAnnotations = createMethodToIndexOfParamToAnnotation(EndpointParam.class);
-   static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToMatrixParamAnnotations = createMethodToIndexOfParamToAnnotation(MatrixParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToFormParamAnnotations = createMethodToIndexOfParamToAnnotation(FormParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToQueryParamAnnotations = createMethodToIndexOfParamToAnnotation(QueryParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToPathParamAnnotations = createMethodToIndexOfParamToAnnotation(PathParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToPostParamAnnotations = createMethodToIndexOfParamToAnnotation(PayloadParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToPartParamAnnotations = createMethodToIndexOfParamToAnnotation(PartParam.class);
    static final LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> methodToIndexOfParamToParamParserAnnotations = createMethodToIndexOfParamToAnnotation(ParamParser.class);
-
-   final Cache<MethodKey, Method> delegationMap;
-
+   static final LoadingCache<Method, Set<Integer>> methodToIndexesOfOptions = CacheBuilder.newBuilder().build(
+         new CacheLoader<Method, Set<Integer>>() {
+            @Override
+            public Set<Integer> load(Method method) {
+               Builder<Integer> toReturn = ImmutableSet.builder();
+               for (int index = 0; index < method.getParameterTypes().length; index++) {
+                  Class<?> type = method.getParameterTypes()[index];
+                  if (HttpRequestOptions.class.isAssignableFrom(type) || HttpRequestOptions[].class.isAssignableFrom(type))
+                     toReturn.add(index);
+               }
+               return toReturn.build();
+            }
+         });
+   
    static LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> createMethodToIndexOfParamToAnnotation(
             final Class<? extends Annotation> annotation) {
       return CacheBuilder.newBuilder().build(new CacheLoader<Method, LoadingCache<Integer, Set<Annotation>>>() {
@@ -220,43 +290,14 @@ public class RestAnnotationProcessor<T> {
                   }
                }));
       }
-
    }
 
-   private static final Function<? super Entry<String, String>, ? extends Part> ENTRY_TO_PART = new Function<Entry<String, String>, Part>() {
-
+   private static final Function<? super Entry<String, Object>, ? extends Part> ENTRY_TO_PART = new Function<Entry<String, Object>, Part>() {
       @Override
-      public Part apply(Entry<String, String> from) {
-         return Part.create(from.getKey(), from.getValue());
+      public Part apply(Entry<String, Object> from) {
+         return Part.create(from.getKey(), from.getValue().toString());
       }
-
    };
-
-   static final LoadingCache<Method, Set<Integer>> methodToIndexesOfOptions = CacheBuilder.newBuilder().build(
-         new CacheLoader<Method, Set<Integer>>() {
-            @Override
-            public Set<Integer> load(Method method) {
-               Builder<Integer> toReturn = ImmutableSet.builder();
-               for (int index = 0; index < method.getParameterTypes().length; index++) {
-                  Class<?> type = method.getParameterTypes()[index];
-                  if (HttpRequestOptions.class.isAssignableFrom(type) || HttpRequestOptions[].class.isAssignableFrom(type))
-                     toReturn.add(index);
-               }
-               return toReturn.build();
-            }
-         });
-
-   private final ParseSax.Factory parserFactory;
-   private final HttpUtils utils;
-   private final ContentMetadataCodec contentMetadataCodec;
-   private final Provider<UriBuilder> uriBuilderProvider;
-   private final LoadingCache<Class<?>, Boolean> seedAnnotationCache;
-   private final String apiVersion;
-   private final String buildVersion;
-   private char[] skips;
-
-   @Inject
-   private InputParamValidator inputParamValidator;
 
    @VisibleForTesting
    Function<HttpResponse, ?> createResponseParser(Method method, HttpRequest request) {
@@ -282,7 +323,7 @@ public class RestAnnotationProcessor<T> {
          if (wrappingTransformer instanceof InvocationContext<?>) {
             ((InvocationContext<?>) wrappingTransformer).setContext(request);
          }
-         transformer = Functions.compose(Function.class.cast(wrappingTransformer), transformer);
+         transformer = compose(Function.class.cast(wrappingTransformer), transformer);
       }
       return transformer;
    }
@@ -297,73 +338,43 @@ public class RestAnnotationProcessor<T> {
          transformer = new ParseFirstJsonValueNamed(injector.getInstance(GsonWrapper.class),
                TypeLiteral.get(returnVal), method.getAnnotation(SelectJson.class).value());
          if (method.isAnnotationPresent(OnlyElement.class))
-            transformer = Functions.compose(new OnlyElementOrNull(), transformer);
+            transformer = compose(new OnlyElementOrNull(), transformer);
       } else {
          transformer = injector.getInstance(getParserOrThrowException(method));
       }
       return transformer;
    }
 
-   @VisibleForTesting
-   Function<Exception, ?> createExceptionParserOrThrowResourceNotFoundOn404IfNoAnnotation(Method method) {
-      return createExceptionParserOrThrowResourceNotFoundOn404IfNoAnnotation(injector, method);
-   }
-
-   @VisibleForTesting
-   public static Function<Exception, ?> createExceptionParserOrThrowResourceNotFoundOn404IfNoAnnotation(
-         Injector injector, Method method) {
-      ExceptionParser annotation = method.getAnnotation(ExceptionParser.class);
-      if (annotation != null) {
-         return injector.getInstance(annotation.value());
-      }
-      return injector.getInstance(MapHttp4xxCodesToExceptions.class);
-   }
-
-   @SuppressWarnings("unchecked")
-   @Inject
-   public RestAnnotationProcessor(Injector injector, LoadingCache<Class<?>, Boolean> seedAnnotationCache, Cache<MethodKey, Method> delegationMap,
-            @ApiVersion String apiVersion, @BuildVersion String buildVersion, ParseSax.Factory parserFactory,
-            HttpUtils utils, ContentMetadataCodec contentMetadataCodec, TypeLiteral<T> typeLiteral) throws ExecutionException {
-      this.declaring = (Class<T>) typeLiteral.getRawType();
+   private final Class<?> declaring;
+   private final Injector injector;
+   private final ParseSax.Factory parserFactory;
+   private final HttpUtils utils;
+   private final ContentMetadataCodec contentMetadataCodec;
+   private final Cache<MethodKey, Method> delegationMap;
+   private final String apiVersion;
+   private final String buildVersion;
+   private final InputParamValidator inputParamValidator;
+   
+   private RestAnnotationProcessor(Injector injector,
+         LoadingCache<Class<?>, Cache<MethodKey, Method>> delegationMapCache, String apiVersion, String buildVersion,
+         ParseSax.Factory parserFactory, HttpUtils utils, ContentMetadataCodec contentMetadataCodec,
+         InputParamValidator inputParamValidator, Class<?> declaring) {
       this.injector = injector;
       this.parserFactory = parserFactory;
       this.utils = utils;
       this.contentMetadataCodec = contentMetadataCodec;
-      this.uriBuilderProvider = injector.getProvider(UriBuilder.class);
-      this.seedAnnotationCache = seedAnnotationCache;
-      seedAnnotationCache.get(declaring);
-      this.delegationMap = delegationMap;
-      if (declaring.isAnnotationPresent(SkipEncoding.class)) {
-         skips = declaring.getAnnotation(SkipEncoding.class).value();
-      } else {
-         skips = new char[] {};
-      }
+      this.delegationMap = delegationMapCache.getUnchecked(declaring);
       this.apiVersion = apiVersion;
       this.buildVersion = buildVersion;
+      this.inputParamValidator = inputParamValidator;
+      this.declaring = declaring;
    }
-
 
    public Method getDelegateOrNull(Method in) {
       return delegationMap.getIfPresent(new MethodKey(in));
    }
 
    public static class MethodKey {
-
-      @Override
-      public int hashCode() {
-         return Objects.hashCode(declaringClass, name, parametersTypeHashCode);
-      }
-
-      @Override
-      public boolean equals(Object obj) {
-         if (this == obj) return true;
-         if (obj == null || getClass() != obj.getClass()) return false;
-         MethodKey that = MethodKey.class.cast(obj);
-         return Objects.equal(this.declaringClass, that.declaringClass)
-               && Objects.equal(this.name, that.name)
-               && Objects.equal(this.parametersTypeHashCode, that.parametersTypeHashCode);
-      }
-
       private final String name;
       private final int parametersTypeHashCode;
       private final Class<?> declaringClass;
@@ -376,233 +387,214 @@ public class RestAnnotationProcessor<T> {
             parametersTypeHashCode += param.hashCode();
          this.parametersTypeHashCode = parametersTypeHashCode;
       }
-
-   }
-
-   final Injector injector;
-
-   private ClassMethodArgs caller;
-   private URI callerEndpoint;
-
-   public void setCaller(ClassMethodArgs caller) {
-      try {
-         seedAnnotationCache.get(caller.getMethod().getDeclaringClass());
-      } catch (ExecutionException e) {
-         Throwables.propagate(e);
+      
+      @Override
+      public int hashCode() {
+         return Objects.hashCode(declaringClass, name, parametersTypeHashCode);
       }
-      this.caller = caller;
-      try {
-         UriBuilder builder = uriBuilderProvider.get().uri(getEndpointFor(caller.getMethod(), caller.getArgs(), injector));
-         Multimap<String, String> tokenValues = addPathAndGetTokens(caller.getMethod().getDeclaringClass(), caller.getMethod(), caller.getArgs(), builder);
-         callerEndpoint = builder.buildFromEncodedMap(Maps2.convertUnsafe(tokenValues));
-      } catch (IllegalStateException e) {
-      } catch (ExecutionException e) {
-         Throwables.propagate(e);
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) return true;
+         if (obj == null || getClass() != obj.getClass()) return false;
+         MethodKey that = MethodKey.class.cast(obj);
+         return equal(this.declaringClass, that.declaringClass)
+               && equal(this.name, that.name)
+               && equal(this.parametersTypeHashCode, that.parametersTypeHashCode);
       }
    }
 
    public GeneratedHttpRequest createRequest(Method method, Object... args) {
-      try {
-         inputParamValidator.validateMethodParametersOrThrow(method, args);
-         ClassMethodArgs cma = logger.isTraceEnabled() ? new ClassMethodArgs(method.getDeclaringClass(), method, args)
-               : null;
+      inputParamValidator.validateMethodParametersOrThrow(method, args);
 
-         URI endpoint = callerEndpoint;
-         try {
-            if (endpoint == null) {
-               endpoint = getEndpointFor(method, args, injector);
-               logger.trace("using endpoint %s for %s", endpoint, cma);
-            } else {
-               logger.trace("using endpoint %s from caller %s for %s", caller, endpoint, cma);
-            }
-         } catch (IllegalStateException e) {
-            logger.trace("looking up default endpoint for %s", cma);
-            endpoint = injector.getInstance(Key.get(uriSupplierLiteral, org.jclouds.location.Provider.class)).get();
-            logger.trace("using default endpoint %s for %s", endpoint, cma);
+      Optional<URI> endpoint = Optional.absent();
+      HttpRequest r = findHttpRequestInArgs(args);
+      if (r != null) {
+         endpoint = Optional.fromNullable(r.getEndpoint());
+         if (endpoint.isPresent())
+            logger.trace("using endpoint %s from args for %s", endpoint, cma(method, args));
+      } else {
+         endpoint = findEndpoint(method, args);
+      }
+
+      if (!endpoint.isPresent())
+         throw new NoSuchElementException(format("no endpoint found for %s", cma(method, args)));
+
+      GeneratedHttpRequest.Builder requestBuilder = requestBuilder();
+      if (r != null) {
+         requestBuilder.fromHttpRequest(r);
+      } else {
+         requestBuilder.method(getHttpMethodOrConstantOrThrowException(method));
+      }
+      
+      requestBuilder.declaring(declaring)
+                    .javaMethod(method)
+                    .args(args)
+                    .filters(getFiltersIfAnnotated(method));
+      
+      Multimap<String, Object> tokenValues = LinkedHashMultimap.create();
+
+      tokenValues.put(Constants.PROPERTY_API_VERSION, apiVersion);
+      tokenValues.put(Constants.PROPERTY_BUILD_VERSION, buildVersion);
+      
+      UriBuilder uriBuilder = uriBuilder(endpoint.get().toString()); // URI template in rfc6570 form
+      
+      overridePathEncoding(uriBuilder, method);
+      
+      tokenValues.putAll(addPathAndGetTokens(declaring, method, args, uriBuilder));
+      
+      Multimap<String, Object> formParams = addFormParams(tokenValues, method, args);
+      Multimap<String, Object> queryParams = addQueryParams(tokenValues, method, args);
+      Multimap<String, String> headers = buildHeaders(tokenValues, method, args);
+
+      if (r != null)
+         headers.putAll(r.getHeaders());
+
+      if (shouldAddHostHeader(method)) {
+         StringBuilder hostHeader = new StringBuilder(endpoint.get().getHost());
+         if (endpoint.get().getPort() != -1)
+            hostHeader.append(":").append(endpoint.get().getPort());
+         headers.put(HOST, hostHeader.toString());
+      }
+
+      Payload payload = null;
+      for(HttpRequestOptions options : findOptionsIn(method, args)) {
+         injector.injectMembers(options);// TODO test case
+         for (Entry<String, String> header : options.buildRequestHeaders().entries()) {
+            headers.put(header.getKey(), replaceTokens(header.getValue(), tokenValues));
          }
-         GeneratedHttpRequest.Builder<?> requestBuilder;
-         HttpRequest r = RestAnnotationProcessor.findHttpRequestInArgs(args);
-         if (r != null) {
-            requestBuilder = GeneratedHttpRequest.builder().fromHttpRequest(r);
-            endpoint = r.getEndpoint();
-         } else {
-            requestBuilder = GeneratedHttpRequest.builder();
-            requestBuilder.method(getHttpMethodOrConstantOrThrowException(method));
+         for (Entry<String, String> query : options.buildQueryParameters().entries()) {
+            queryParams.put(query.getKey(), replaceTokens(query.getValue(), tokenValues));
          }
-
-         if (endpoint == null) {
-            throw new NoSuchElementException(String.format("no endpoint found for %s",
-                     new ClassMethodArgs(method.getDeclaringClass(), method, args)));
-         }
-
-         requestBuilder.declaring(declaring)
-                       .javaMethod(method)
-                       .args(args)
-                       .caller(caller)
-                       .skips(skips)
-                       .filters(getFiltersIfAnnotated(method));
-
-         UriBuilder builder = uriBuilderProvider.get().uri(endpoint);
-
-         Multimap<String, String> tokenValues = LinkedHashMultimap.create();
-
-         tokenValues.put(Constants.PROPERTY_API_VERSION, apiVersion);
-         tokenValues.put(Constants.PROPERTY_BUILD_VERSION, buildVersion);
-
-         tokenValues.putAll(addPathAndGetTokens(declaring, method, args, builder));
-
-         Multimap<String, String> formParams = addFormParams(tokenValues.entries(), method, args);
-         Multimap<String, String> queryParams = addQueryParams(tokenValues.entries(), method, args);
-         Multimap<String, String> matrixParams = addMatrixParams(tokenValues.entries(), method, args);
-         Multimap<String, String> headers = buildHeaders(tokenValues.entries(), method, args);
-         if (r != null)
-            headers.putAll(r.getHeaders());
-
-         if (shouldAddHostHeader(method)) {
-            StringBuilder hostHeader = new StringBuilder(endpoint.getHost());
-            if (endpoint.getPort() != -1)
-               hostHeader.append(":").append(endpoint.getPort());
-            headers.put(HOST, hostHeader.toString());
-         }
-
-         Payload payload = null;
-         for(HttpRequestOptions options : findOptionsIn(method, args)) {
-            injector.injectMembers(options);// TODO test case
-            for (Entry<String, String> header : options.buildRequestHeaders().entries()) {
-               headers.put(header.getKey(), Strings2.replaceTokens(header.getValue(), tokenValues.entries()));
-            }
-            for (Entry<String, String> matrix : options.buildMatrixParameters().entries()) {
-               matrixParams.put(matrix.getKey(), Strings2.replaceTokens(matrix.getValue(), tokenValues.entries()));
-            }
-            for (Entry<String, String> query : options.buildQueryParameters().entries()) {
-               queryParams.put(query.getKey(), Strings2.replaceTokens(query.getValue(), tokenValues.entries()));
-            }
-            for (Entry<String, String> form : options.buildFormParameters().entries()) {
-               formParams.put(form.getKey(), Strings2.replaceTokens(form.getValue(), tokenValues.entries()));
-            }
-
-            String pathSuffix = options.buildPathSuffix();
-            if (pathSuffix != null) {
-               builder.path(pathSuffix);
-            }
-            String stringPayload = options.buildStringPayload();
-            if (stringPayload != null)
-               payload = Payloads.newStringPayload(stringPayload);
+         for (Entry<String, String> form : options.buildFormParameters().entries()) {
+            formParams.put(form.getKey(), replaceTokens(form.getValue(), tokenValues));
          }
 
-         if (matrixParams.size() > 0) {
-            for (String key : matrixParams.keySet())
-               builder.matrixParam(key, Lists.newArrayList(matrixParams.get(key)).toArray());
+         String pathSuffix = options.buildPathSuffix();
+         if (pathSuffix != null) {
+            uriBuilder.appendPath(pathSuffix);
          }
+         String stringPayload = options.buildStringPayload();
+         if (stringPayload != null)
+            payload = Payloads.newStringPayload(stringPayload);
+      }
+      
+      if (queryParams.size() > 0) {
+         uriBuilder.query(queryParams);
+      }
 
-         if (queryParams.size() > 0) {
-            builder.replaceQuery(Queries.makeQueryLine(queryParams, null, skips));
+      requestBuilder.headers(filterOutContentHeaders(headers));
+
+      requestBuilder.endpoint(uriBuilder.build(convertUnsafe(tokenValues)));
+      
+      if (payload == null)
+         payload = findPayloadInArgs(args);
+      
+      List<? extends Part> parts = getParts(method, args, ImmutableMultimap.<String, Object> builder()
+                                                                           .putAll(tokenValues)
+                                                                           .putAll(formParams).build());
+      
+      if (parts.size() > 0) {
+         if (formParams.size() > 0) {
+            parts = newLinkedList(concat(transform(formParams.entries(), ENTRY_TO_PART), parts));
          }
-
-         requestBuilder.headers(filterOutContentHeaders(headers));
-
-         try {
-            requestBuilder.endpoint(builder.buildFromEncodedMap(Maps2.convertUnsafe(tokenValues)));
-         } catch (IllegalArgumentException e) {
-            throw new IllegalStateException(e);
-         } catch (UriBuilderException e) {
-            throw new IllegalStateException(e);
-         }
-
+         payload = new MultipartForm(BOUNDARY, parts);
+      } else if (formParams.size() > 0) {
+         payload = Payloads.newUrlEncodedFormPayload(transformValues(formParams, NullableToStringFunction.INSTANCE));
+      } else if (headers.containsKey(CONTENT_TYPE)) {
          if (payload == null)
-            payload = findPayloadInArgs(args);
-         List<? extends Part> parts = getParts(method, args, concat(tokenValues.entries(), formParams.entries()));
-         if (parts.size() > 0) {
-            if (formParams.size() > 0) {
-               parts = newLinkedList(concat(transform(formParams.entries(), ENTRY_TO_PART), parts));
-            }
-            payload = new MultipartForm(BOUNDARY, parts);
-         } else if (formParams.size() > 0) {
-            payload = Payloads.newUrlEncodedFormPayload(formParams, skips);
-         } else if (headers.containsKey(CONTENT_TYPE)) {
-            if (payload == null)
-               payload = Payloads.newByteArrayPayload(new byte[] {});
-            payload.getContentMetadata().setContentType(Iterables.get(headers.get(CONTENT_TYPE), 0));
-         }
-         if (payload != null) {
-            requestBuilder.payload(payload);
-         }
-         GeneratedHttpRequest request = requestBuilder.build();
+            payload = Payloads.newByteArrayPayload(new byte[] {});
+         payload.getContentMetadata().setContentType(get(headers.get(CONTENT_TYPE), 0));
+      }
+      if (payload != null) {
+         requestBuilder.payload(payload);
+      }
+      GeneratedHttpRequest request = requestBuilder.build();
 
-         org.jclouds.rest.MapBinder mapBinder = getMapPayloadBinderOrNull(method, args);
-         if (mapBinder != null) {
-            Map<String, Object> mapParams = buildPostParams(method, args);
-            if (method.isAnnotationPresent(PayloadParams.class)) {
-               PayloadParams params = method.getAnnotation(PayloadParams.class);
-               addMapPayload(mapParams, params, headers.entries());
-            }
-            request = mapBinder.bindToRequest(request, mapParams);
-         } else {
-            request = decorateRequest(request);
+      org.jclouds.rest.MapBinder mapBinder = getMapPayloadBinderOrNull(method, args);
+      if (mapBinder != null) {
+         Map<String, Object> mapParams = buildPostParams(method, args);
+         if (method.isAnnotationPresent(PayloadParams.class)) {
+            PayloadParams params = method.getAnnotation(PayloadParams.class);
+            addMapPayload(mapParams, params, headers);
          }
+         request = mapBinder.bindToRequest(request, mapParams);
+      } else {
+         request = decorateRequest(request);
+      }
 
-         if (request.getPayload() != null) {
-            contentMetadataCodec.fromHeaders(request.getPayload().getContentMetadata(), headers);
-         }
-         utils.checkRequestHasRequiredProperties(request);
-         return request;
-      } catch (ExecutionException e) {
-         throw Throwables.propagate(e);
+      if (request.getPayload() != null) {
+         contentMetadataCodec.fromHeaders(request.getPayload().getContentMetadata(), headers);
+      }
+      utils.checkRequestHasRequiredProperties(request);
+      return request;
+   }
+   
+   private static <K, V> Map<K, V> convertUnsafe(Multimap<K, V> in) {
+      LinkedHashMap<K, V> out = Maps.newLinkedHashMap();
+      for (Entry<K, V> entry : in.entries()) {
+         out.put(entry.getKey(), entry.getValue());
+      }
+      return ImmutableMap.copyOf(out);
+   }
+   
+   protected org.jclouds.rest.internal.GeneratedHttpRequest.Builder requestBuilder() {
+      return GeneratedHttpRequest.builder();
+   }
+
+   // TODO cache
+   private void overridePathEncoding(UriBuilder uriBuilder, Method method) {
+      if (declaring.isAnnotationPresent(SkipEncoding.class)) {
+         uriBuilder.skipPathEncoding(Chars.asList(declaring.getAnnotation(SkipEncoding.class).value()));
+      }
+      if (method.isAnnotationPresent(SkipEncoding.class)) {
+         uriBuilder.skipPathEncoding(Chars.asList(method.getAnnotation(SkipEncoding.class).value()));
       }
    }
 
+   // different than guava as accepts null
+   private static enum NullableToStringFunction implements Function<Object, String> {
+      INSTANCE;
+      @Override
+      public String apply(Object o) {
+         if (o == null)
+            return null;
+         return o.toString();
+      }
+   }
+   
+   protected Optional<URI> findEndpoint(Method method, Object... args) {
+      ClassMethodArgs cma = cma(method, args);
+      Optional<URI> endpoint = getEndpointFor(method, args);
+      if (endpoint.isPresent())
+         logger.trace("using endpoint %s for %s", endpoint, cma);
+      if (!endpoint.isPresent()) {
+         logger.trace("looking up default endpoint for %s", cma);
+         endpoint = Optional.fromNullable(injector.getInstance(
+               Key.get(uriSupplierLiteral, org.jclouds.location.Provider.class)).get());
+         if (endpoint.isPresent())
+            logger.trace("using default endpoint %s for %s", endpoint, cma);
+      }
+      return endpoint;
+   }
+
    public static Multimap<String, String> filterOutContentHeaders(Multimap<String, String> headers) {
-      // http message usually comes in as a null key header, let's filter it
-      // out.
-      return ImmutableMultimap.copyOf(Multimaps.filterKeys(headers,
-         Predicates.and(
-            Predicates.notNull(),
-            Predicates.not(Predicates.in(ContentMetadata.HTTP_HEADERS)))));
+      // http message usually comes in as a null key header, let's filter it out.
+      return ImmutableMultimap.copyOf(filterKeys(headers, and(notNull(), not(in(ContentMetadata.HTTP_HEADERS)))));
    }
 
    public static final String BOUNDARY = "--JCLOUDS--";
 
-   private Multimap<String, String> addPathAndGetTokens(Class<?> clazz, Method method, Object[] args, UriBuilder builder) throws ExecutionException {
+   protected Multimap<String, Object> addPathAndGetTokens(Class<?> clazz, Method method, Object[] args, UriBuilder uriBuilder) {
       if (clazz.isAnnotationPresent(Path.class))
-         builder.path(clazz);
+         uriBuilder.appendPath(clazz.getAnnotation(Path.class).value());
       if (method.isAnnotationPresent(Path.class))
-         builder.path(method);
-      return encodeValues(getPathParamKeyValues(method, args), skips);
+         uriBuilder.appendPath(method.getAnnotation(Path.class).value());
+      return getPathParamKeyValues(method, args);
    }
 
-   public URI replaceQuery(URI in, String newQuery, @Nullable Comparator<Entry<String, String>> sorter) {
-      return replaceQuery(uriBuilderProvider, in, newQuery, sorter, skips);
-   }
-
-   public static URI replaceQuery(Provider<UriBuilder> uriBuilderProvider, URI in, String newQuery,
-         @Nullable Comparator<Entry<String, String>> sorter, char... skips) {
-      UriBuilder builder = uriBuilderProvider.get().uri(in);
-      builder.replaceQuery(Queries.makeQueryLine(Queries.parseQueryToMap(newQuery), sorter, skips));
-      return builder.build();
-   }
-
-   private Multimap<String, String> addMatrixParams(Collection<Entry<String, String>> tokenValues, Method method,
-         Object... args) throws ExecutionException {
-      Multimap<String, String> matrixMap = LinkedListMultimap.create();
-      if (declaring.isAnnotationPresent(MatrixParams.class)) {
-         MatrixParams matrix = declaring.getAnnotation(MatrixParams.class);
-         addMatrix(matrixMap, matrix, tokenValues);
-      }
-
-      if (method.isAnnotationPresent(MatrixParams.class)) {
-         MatrixParams matrix = method.getAnnotation(MatrixParams.class);
-         addMatrix(matrixMap, matrix, tokenValues);
-      }
-
-      for (Entry<String, String> matrix : getMatrixParamKeyValues(method, args).entries()) {
-         matrixMap.put(matrix.getKey(), Strings2.replaceTokens(matrix.getValue(), tokenValues));
-      }
-      return matrixMap;
-   }
-
-   private Multimap<String, String> addFormParams(Collection<Entry<String, String>> tokenValues, Method method,
-         Object... args) throws ExecutionException {
-      Multimap<String, String> formMap = LinkedListMultimap.create();
+   private Multimap<String, Object> addFormParams(Multimap<String, ?> tokenValues, Method method, Object... args) {
+      Multimap<String, Object> formMap = LinkedListMultimap.create();
       if (declaring.isAnnotationPresent(FormParams.class)) {
          FormParams form = declaring.getAnnotation(FormParams.class);
          addForm(formMap, form, tokenValues);
@@ -613,15 +605,15 @@ public class RestAnnotationProcessor<T> {
          addForm(formMap, form, tokenValues);
       }
 
-      for (Entry<String, String> form : getFormParamKeyValues(method, args).entries()) {
-         formMap.put(form.getKey(), Strings2.replaceTokens(form.getValue(), tokenValues));
+      for (Entry<String, Object> form : getFormParamKeyValues(method, args).entries()) {
+         formMap.put(form.getKey(), replaceTokens(form.getValue().toString(), tokenValues));
       }
       return formMap;
    }
 
-   private Multimap<String, String> addQueryParams(Collection<Entry<String, String>> tokenValues, Method method,
-         Object... args) throws ExecutionException {
-      Multimap<String, String> queryMap = LinkedListMultimap.create();
+   private Multimap<String, Object> addQueryParams(Multimap<String, ?> tokenValues, Method method,
+         Object... args) {
+      Multimap<String, Object> queryMap = LinkedListMultimap.create();
       if (declaring.isAnnotationPresent(QueryParams.class)) {
          QueryParams query = declaring.getAnnotation(QueryParams.class);
          addQuery(queryMap, query, tokenValues);
@@ -632,55 +624,41 @@ public class RestAnnotationProcessor<T> {
          addQuery(queryMap, query, tokenValues);
       }
 
-      for (Entry<String, String> query : getQueryParamKeyValues(method, args).entries()) {
-         queryMap.put(query.getKey(), Strings2.replaceTokens(query.getValue(), tokenValues));
+      for (Entry<String, Object> query : getQueryParamKeyValues(method, args).entries()) {
+         queryMap.put(query.getKey(), replaceTokens(query.getValue().toString(), tokenValues));
       }
       return queryMap;
    }
 
-   private void addForm(Multimap<String, String> formParams, FormParams form,
-         Collection<Entry<String, String>> tokenValues) {
+   private void addForm(Multimap<String, Object> formParams, FormParams form, Multimap<String, ?> tokenValues) {
       for (int i = 0; i < form.keys().length; i++) {
          if (form.values()[i].equals(FormParams.NULL)) {
             formParams.removeAll(form.keys()[i]);
             formParams.put(form.keys()[i], null);
          } else {
-            formParams.put(form.keys()[i], Strings2.replaceTokens(form.values()[i], tokenValues));
+            formParams.put(form.keys()[i], replaceTokens(form.values()[i], tokenValues));
          }
       }
    }
 
-   private void addQuery(Multimap<String, String> queryParams, QueryParams query,
-         Collection<Entry<String, String>> tokenValues) {
+   private void addQuery(Multimap<String, Object> queryParams, QueryParams query, Multimap<String, ?> tokenValues) {
       for (int i = 0; i < query.keys().length; i++) {
          if (query.values()[i].equals(QueryParams.NULL)) {
             queryParams.removeAll(query.keys()[i]);
             queryParams.put(query.keys()[i], null);
          } else {
-            queryParams.put(query.keys()[i], Strings2.replaceTokens(query.values()[i], tokenValues));
-         }
-      }
-   }
-
-   private void addMatrix(Multimap<String, String> matrixParams, MatrixParams matrix,
-         Collection<Entry<String, String>> tokenValues) {
-      for (int i = 0; i < matrix.keys().length; i++) {
-         if (matrix.values()[i].equals(MatrixParams.NULL)) {
-            matrixParams.removeAll(matrix.keys()[i]);
-            matrixParams.put(matrix.keys()[i], null);
-         } else {
-            matrixParams.put(matrix.keys()[i], Strings2.replaceTokens(matrix.values()[i], tokenValues));
+            queryParams.put(query.keys()[i], replaceTokens(query.values()[i], tokenValues));
          }
       }
    }
 
    private void addMapPayload(Map<String, Object> postParams, PayloadParams mapDefaults,
-         Collection<Entry<String, String>> tokenValues) {
+         Multimap<String, String> headers) {
       for (int i = 0; i < mapDefaults.keys().length; i++) {
          if (mapDefaults.values()[i].equals(PayloadParams.NULL)) {
             postParams.put(mapDefaults.keys()[i], null);
          } else {
-            postParams.put(mapDefaults.keys()[i], Strings2.replaceTokens(mapDefaults.values()[i], tokenValues));
+            postParams.put(mapDefaults.keys()[i], replaceTokens(mapDefaults.values()[i], headers));
          }
       }
    }
@@ -688,7 +666,7 @@ public class RestAnnotationProcessor<T> {
    //TODO: change to LoadingCache<Method, List<HttpRequestFilter>> and move this logic to the CacheLoader.
    @VisibleForTesting
    List<HttpRequestFilter> getFiltersIfAnnotated(Method method) {
-      List<HttpRequestFilter> filters = Lists.newArrayList();
+      List<HttpRequestFilter> filters = newArrayList();
       if (declaring.isAnnotationPresent(RequestFilters.class)) {
          for (Class<? extends HttpRequestFilter> clazz : declaring.getAnnotation(RequestFilters.class).value()) {
             HttpRequestFilter instance = injector.getInstance(clazz);
@@ -710,8 +688,7 @@ public class RestAnnotationProcessor<T> {
 
    //TODO: change to LoadingCache<ClassMethodArgs, Optional<URI>> and move this logic to the CacheLoader.
    @VisibleForTesting
-   public static URI getEndpointInParametersOrNull(Method method, final Object[] args, Injector injector)
-         throws ExecutionException {
+   public static URI getEndpointInParametersOrNull(Method method, final Object[] args, Injector injector) {
       Map<Integer, Set<Annotation>> map = indexWithAtLeastOneAnnotation(method,
             methodToIndexOfParamToEndpointParamAnnotations);
       if (map.size() >= 1 && args.length > 0) {
@@ -723,29 +700,27 @@ public class RestAnnotationProcessor<T> {
             try {
                URI returnVal = parser.apply(args[index]);
                checkArgument(returnVal != null,
-                     String.format("endpoint for [%s] not configured for %s", args[index], method));
+                     format("endpoint for [%s] not configured for %s", args[index], method));
                return returnVal;
             } catch (NullPointerException e) {
-               throw new IllegalArgumentException(String.format("argument at index %d on method %s was null", index, method), e);
+               throw new IllegalArgumentException(format("argument at index %d on method %s was null", index, method),
+                     e);
             }
          } else {
             SortedSet<Integer> keys = newTreeSet(map.keySet());
             Iterable<Object> argsToParse = transform(keys, new Function<Integer, Object>() {
-
                @Override
                public Object apply(Integer from) {
                   return args[from];
                }
-
             });
             try {
                URI returnVal = parser.apply(argsToParse);
-               checkArgument(returnVal != null,
-                     String.format("endpoint for [%s] not configured for %s", argsToParse, method));
+               checkArgument(returnVal != null, format("endpoint for [%s] not configured for %s", argsToParse, method));
                return returnVal;
             } catch (NullPointerException e) {
-               throw new IllegalArgumentException(String.format("illegal argument in [%s] for method %s", argsToParse,
-                     method), e);
+               throw new IllegalArgumentException(
+                     format("illegal argument in [%s] for method %s", argsToParse, method), e);
             }
          }
       }
@@ -756,7 +731,7 @@ public class RestAnnotationProcessor<T> {
    };
 
    // TODO: change to LoadingCache<ClassMethodArgs, URI> and move this logic to the CacheLoader.
-   public static URI getEndpointFor(Method method, Object[] args, Injector injector) throws ExecutionException {
+   protected Optional<URI> getEndpointFor(Method method, Object[] args) {
       URI endpoint = getEndpointInParametersOrNull(method, args, injector);
       if (endpoint == null) {
          Endpoint annotation;
@@ -765,19 +740,19 @@ public class RestAnnotationProcessor<T> {
          } else if (method.getDeclaringClass().isAnnotationPresent(Endpoint.class)) {
             annotation = method.getDeclaringClass().getAnnotation(Endpoint.class);
          } else {
-            throw new IllegalStateException("no annotations on class or method: " + method);
+            logger.trace("no annotations on class or method: %s", method);
+            return Optional.absent();
          }
          endpoint = injector.getInstance(Key.get(uriSupplierLiteral, annotation.value())).get();
       }
-      URI providerEndpoint = injector.getInstance(Key.get(uriSupplierLiteral, org.jclouds.location.Provider.class))
-               .get();
-      return addHostIfMissing(endpoint, providerEndpoint);
+      URI provider = injector.getInstance(Key.get(uriSupplierLiteral, org.jclouds.location.Provider.class)).get();
+      return Optional.fromNullable(addHostIfMissing(endpoint, provider));
    }
 
-   public static URI addHostIfMissing(URI original, URI withHost) {
+   @VisibleForTesting
+   static URI addHostIfMissing(URI original, URI withHost) {
       checkNotNull(withHost, "URI withHost cannot be null");
       checkArgument(withHost.getHost() != null, "URI withHost must have host:" + withHost);
-
       if (original == null)
          return null;
       if (original.getHost() != null)
@@ -815,9 +790,9 @@ public class RestAnnotationProcessor<T> {
          } else if (method.getReturnType().equals(HttpResponse.class)
                || TypeLiteral.get(method.getGenericReturnType()).equals(futureHttpResponseLiteral)) {
             return Key.get(Class.class.cast(IdentityFunction.class));
-         } else if (getAcceptHeadersOrNull(method).contains(MediaType.APPLICATION_JSON)) {
+         } else if (getAcceptHeadersOrNull(method).contains(APPLICATION_JSON)) {
             return getJsonParserKeyForMethod(method);
-         } else if (getAcceptHeadersOrNull(method).contains(MediaType.APPLICATION_XML)
+         } else if (getAcceptHeadersOrNull(method).contains(APPLICATION_XML)
                 || method.isAnnotationPresent(JAXBResponseParser.class)) {
             return getJAXBParserKeyForMethod(method);
          } else if (method.getReturnType().equals(String.class)
@@ -923,25 +898,18 @@ public class RestAnnotationProcessor<T> {
          if (http != null)
             methodsBuilder.add(http.value());
       }
-      Set<String> methods = methodsBuilder.build();
-      return (methods.size() == 0) ? null : methods;
+      return methodsBuilder.build();
    }
 
    public String getHttpMethodOrConstantOrThrowException(Method method) {
       Set<String> requests = getHttpMethods(method);
-      if (requests == null || requests.size() != 1) {
-         throw new IllegalStateException(
-               "You must use at least one, but no more than one http method or pathparam annotation on: "
-                     + method.toString());
-      }
-      return requests.iterator().next();
+      checkState(requests.size() == 1,
+            "You must use at least one, but no more than one http method or pathparam annotation on: %s", method);
+      return get(requests, 0);
    }
 
    public boolean shouldAddHostHeader(Method method) {
-      if (declaring.isAnnotationPresent(VirtualHost.class) || method.isAnnotationPresent(VirtualHost.class)) {
-         return true;
-      }
-      return false;
+      return (declaring.isAnnotationPresent(VirtualHost.class) || method.isAnnotationPresent(VirtualHost.class));
    }
 
    private static final Predicate<Set<?>> notEmpty = new Predicate<Set<?>>() {
@@ -950,15 +918,15 @@ public class RestAnnotationProcessor<T> {
       }
    };
 
-   public GeneratedHttpRequest decorateRequest(GeneratedHttpRequest request) throws NegativeArraySizeException,
-            ExecutionException {
-      OUTER: for (Entry<Integer, Set<Annotation>> entry : concat(//
-               filterValues(methodToIndexOfParamToBinderParamAnnotation.get(request.getJavaMethod()).asMap(), notEmpty)
-                        .entrySet(), //
-               filterValues(methodToIndexOfParamToWrapWithAnnotation.get(request.getJavaMethod()).asMap(), notEmpty)
-                        .entrySet())) {
+   public GeneratedHttpRequest decorateRequest(GeneratedHttpRequest request) throws NegativeArraySizeException {
+      Iterable<Entry<Integer, Set<Annotation>>> binderOrWrapWith = concat(
+            filterValues(methodToIndexOfParamToBinderParamAnnotation.getUnchecked(request.getJavaMethod()).asMap(),
+                  notEmpty).entrySet(),
+            filterValues(methodToIndexOfParamToWrapWithAnnotation.getUnchecked(request.getJavaMethod()).asMap(),
+                  notEmpty).entrySet());
+      OUTER: for (Entry<Integer, Set<Annotation>> entry : binderOrWrapWith) {
          boolean shouldBreak = false;
-         Annotation annotation = Iterables.get(entry.getValue(), 0);
+         Annotation annotation = get(entry.getValue(), 0);
          Binder binder;
          if (annotation instanceof BinderParam)
             binder = injector.getInstance(BinderParam.class.cast(annotation).value());
@@ -996,32 +964,30 @@ public class RestAnnotationProcessor<T> {
             // (first, however, let's make sure we have enough args on the actual method)
             if (entry.getKey() >= request.getJavaMethod().getParameterAnnotations().length) {
                // not known whether this happens
-               throw new IllegalArgumentException("Argument index " + (entry.getKey() + 1)
-                        + " is out of bounds for method " + request.getJavaMethod());
+               throw new IllegalArgumentException(format("Argument index %s is out of bounds for method %s",
+                     entry.getKey() + 1, request.getJavaMethod()));
             }
 
             if (request.getJavaMethod().isVarArgs()
                      && entry.getKey() + 1 == request.getJavaMethod().getParameterTypes().length)
-               // allow null/missing for var args
-               continue OUTER;
+               continue OUTER; // allow null/missing for var args
 
             Annotation[] annotations = request.getJavaMethod().getParameterAnnotations()[entry.getKey()];
             for (Annotation a : annotations) {
                if (NULLABLE.apply(a))
                   continue OUTER;
             }
-            Preconditions.checkNotNull(null, request.getJavaMethod().getName() + " parameter " + (entry.getKey() + 1));
+            checkNotNull(null, request.getJavaMethod().getName() + " parameter " + (entry.getKey() + 1));
          }
       }
-
       return request;
    }
 
    public static Map<Integer, Set<Annotation>> indexWithOnlyOneAnnotation(Method method, String description,
-         LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> toRefine) throws ExecutionException {
+         LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> toRefine) {
       Map<Integer, Set<Annotation>> indexToPayloadAnnotation = indexWithAtLeastOneAnnotation(method, toRefine);
       if (indexToPayloadAnnotation.size() > 1) {
-         throw new IllegalStateException(String.format(
+         throw new IllegalStateException(format(
                "You must not specify more than one %s annotation on: %s; found %s", description, method.toString(),
                indexToPayloadAnnotation));
       }
@@ -1029,8 +995,8 @@ public class RestAnnotationProcessor<T> {
    }
 
    private static Map<Integer, Set<Annotation>> indexWithAtLeastOneAnnotation(Method method,
-         LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> toRefine) throws ExecutionException {
-      Map<Integer, Set<Annotation>> indexToPayloadAnnotation = filterValues(toRefine.get(method).asMap(),
+         LoadingCache<Method, LoadingCache<Integer, Set<Annotation>>> toRefine) {
+      Map<Integer, Set<Annotation>> indexToPayloadAnnotation = filterValues(toRefine.getUnchecked(method).asMap(),
             new Predicate<Set<Annotation>>() {
                public boolean apply(Set<Annotation> input) {
                   return input.size() == 1;
@@ -1040,9 +1006,9 @@ public class RestAnnotationProcessor<T> {
    }
 
   //TODO: change to LoadingCache<ClassMethodArgs, HttpRequestOptions and move this logic to the CacheLoader.
-  private Set<HttpRequestOptions> findOptionsIn(Method method, Object... args) throws ExecutionException {
+  private Set<HttpRequestOptions> findOptionsIn(Method method, Object... args) {
      ImmutableSet.Builder<HttpRequestOptions> result = ImmutableSet.builder();
-     for (int index : methodToIndexesOfOptions.get(method)) {
+     for (int index : methodToIndexesOfOptions.getUnchecked(method)) {
          if (args.length >= index + 1) {// accommodate varargs
             if (args[index] instanceof Object[]) {
                for (Object option : (Object[]) args[index]) {
@@ -1062,15 +1028,15 @@ public class RestAnnotationProcessor<T> {
       return result.build();
    }
 
-   public Multimap<String, String> buildHeaders(Collection<Entry<String, String>> tokenValues, Method method,
-         final Object... args) throws ExecutionException {
+   public Multimap<String, String> buildHeaders(Multimap<String, ?> tokenValues, Method method, Object... args) {
       Multimap<String, String> headers = LinkedHashMultimap.create();
       addHeaderIfAnnotationPresentOnMethod(headers, method, tokenValues);
-      LoadingCache<Integer, Set<Annotation>> indexToHeaderParam = methodToIndexOfParamToHeaderParamAnnotations.get(method);
+      LoadingCache<Integer, Set<Annotation>> indexToHeaderParam = methodToIndexOfParamToHeaderParamAnnotations
+            .getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToHeaderParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
             String value = args[entry.getKey()].toString();
-            value = Strings2.replaceTokens(value, tokenValues);
+            value = replaceTokens(value, tokenValues);
             headers.put(((HeaderParam) key).value(), value);
          }
       }
@@ -1110,7 +1076,7 @@ public class RestAnnotationProcessor<T> {
    }
 
    public void addHeaderIfAnnotationPresentOnMethod(Multimap<String, String> headers, Method method,
-         Collection<Entry<String, String>> tokenValues) {
+         Multimap<String, ?> tokenValues) {
       if (declaring.isAnnotationPresent(Headers.class)) {
          Headers header = declaring.getAnnotation(Headers.class);
          addHeader(headers, header, tokenValues);
@@ -1121,19 +1087,18 @@ public class RestAnnotationProcessor<T> {
       }
    }
 
-   private void addHeader(Multimap<String, String> headers, Headers header,
-         Collection<Entry<String, String>> tokenValues) {
+   private void addHeader(Multimap<String, String> headers, Headers header, Multimap<String, ?> tokenValues) {
       for (int i = 0; i < header.keys().length; i++) {
          String value = header.values()[i];
-         value = Strings2.replaceTokens(value, tokenValues);
+         value = replaceTokens(value, tokenValues);
          headers.put(header.keys()[i], value);
       }
-
    }
 
-   List<? extends Part> getParts(Method method, Object[] args, Iterable<Entry<String, String>> iterable) throws ExecutionException {
-      List<Part> parts = newLinkedList();
-      LoadingCache<Integer, Set<Annotation>> indexToPartParam = methodToIndexOfParamToPartParamAnnotations.get(method);
+   private List<Part> getParts(Method method, Object[] args, Multimap<String, ?> tokenValues) {
+      ImmutableList.Builder<Part> parts = ImmutableList.<Part> builder();
+      LoadingCache<Integer, Set<Annotation>> indexToPartParam = methodToIndexOfParamToPartParamAnnotations
+            .getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToPartParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
             PartParam param = (PartParam) key;
@@ -1141,14 +1106,14 @@ public class RestAnnotationProcessor<T> {
             if (!PartParam.NO_CONTENT_TYPE.equals(param.contentType()))
                options.contentType(param.contentType());
             if (!PartParam.NO_FILENAME.equals(param.filename()))
-               options.filename(Strings2.replaceTokens(param.filename(), iterable));
+               options.filename(replaceTokens(param.filename(), tokenValues));
             Object arg = args[entry.getKey()];
-            Preconditions.checkNotNull(arg, param.name());
+            checkNotNull(arg, param.name());
             Part part = Part.create(param.name(), newPayload(arg), options);
             parts.add(part);
          }
       }
-      return parts;
+      return parts.build();
    }
 
    public static HttpRequest findHttpRequestInArgs(Object[] args) {
@@ -1172,14 +1137,14 @@ public class RestAnnotationProcessor<T> {
    }
 
    //TODO: change to LoadingCache<ClassMethodArgs, Multimap<String,String> and move this logic to the CacheLoader.
-   private Multimap<String, String> getPathParamKeyValues(Method method, Object... args) throws ExecutionException {
-      Multimap<String, String> pathParamValues = LinkedHashMultimap.create();
-      LoadingCache<Integer, Set<Annotation>> indexToPathParam = methodToIndexOfParamToPathParamAnnotations.get(method);
+   private Multimap<String, Object> getPathParamKeyValues(Method method, Object... args) {
+      Multimap<String, Object> pathParamValues = LinkedHashMultimap.create();
+      LoadingCache<Integer, Set<Annotation>> indexToPathParam = methodToIndexOfParamToPathParamAnnotations.getUnchecked(method);
 
-      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.get(method);
+      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToPathParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
-            Set<Annotation> extractors = indexToParamExtractor.get(entry.getKey());
+            Set<Annotation> extractors = indexToParamExtractor.getUnchecked(entry.getKey());
             String paramKey = ((PathParam) key).value();
             Optional<?> paramValue = getParamValue(method, args, extractors, entry, paramKey);
             if (paramValue.isPresent())
@@ -1190,7 +1155,6 @@ public class RestAnnotationProcessor<T> {
          String paramKey = method.getAnnotation(PathParam.class).value();
          String paramValue = injector.getInstance(method.getAnnotation(ParamParser.class).value()).apply(args);
          pathParamValues.put(paramKey, paramValue);
-
       }
       return pathParamValues;
    }
@@ -1201,8 +1165,7 @@ public class RestAnnotationProcessor<T> {
       Object arg = args[argIndex];
       if (extractors != null && extractors.size() > 0 && checkPresentOrNullable(method, paramKey, argIndex, arg)) {
          ParamParser extractor = (ParamParser) extractors.iterator().next();
-         // ParamParsers can deal with nullable parameters
-         arg = injector.getInstance(extractor.value()).apply(arg);
+         arg = injector.getInstance(extractor.value()).apply(arg); // ParamParsers can deal with nullable parameters
       }
       checkPresentOrNullable(method, paramKey, argIndex, arg);
       return Optional.fromNullable(arg);
@@ -1210,7 +1173,7 @@ public class RestAnnotationProcessor<T> {
 
    private static boolean checkPresentOrNullable(Method method, String paramKey, Integer argIndex, Object arg) {
       if (arg == null && !argNullable(method, argIndex))
-         throw new NullPointerException(String.format("param{%s} for method %s.%s", paramKey, method
+         throw new NullPointerException(format("param{%s} for method %s.%s", paramKey, method
                   .getDeclaringClass().getSimpleName(), method.getName()));
       return true;
    }
@@ -1220,7 +1183,6 @@ public class RestAnnotationProcessor<T> {
    }
 
    private static final Predicate<Annotation> NULLABLE = new Predicate<Annotation>() {
-
       @Override
       public boolean apply(Annotation in) {
          return Nullable.class.isAssignableFrom(in.annotationType());
@@ -1228,52 +1190,21 @@ public class RestAnnotationProcessor<T> {
    };
 
    private static boolean containsNullable(Annotation[] annotations) {
-      return Iterables.any(ImmutableSet.copyOf(annotations), NULLABLE);
-   }
-
-   private Multimap<String, String> encodeValues(Multimap<String, String> unencoded, char... skips) {
-      Multimap<String, String> encoded = LinkedHashMultimap.create();
-      for (Entry<String, String> entry : unencoded.entries()) {
-         encoded.put(entry.getKey(), Strings2.urlEncode(entry.getValue(), skips));
-      }
-      return encoded;
-   }
-
-   //TODO: change to LoadingCache<ClassMethodArgs, Multimap<String,String> and move this logic to the CacheLoader.
-   private Multimap<String, String> getMatrixParamKeyValues(Method method, Object... args) throws ExecutionException {
-      Multimap<String, String> matrixParamValues = LinkedHashMultimap.create();
-      LoadingCache<Integer, Set<Annotation>> indexToMatrixParam = methodToIndexOfParamToMatrixParamAnnotations.get(method);
-
-      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.get(method);
-      for (Entry<Integer, Set<Annotation>> entry : indexToMatrixParam.asMap().entrySet()) {
-         for (Annotation key : entry.getValue()) {
-            Set<Annotation> extractors = indexToParamExtractor.get(entry.getKey());
-            String paramKey = ((MatrixParam) key).value();
-            Optional<?> paramValue = getParamValue(method, args, extractors, entry, paramKey);
-            if (paramValue.isPresent())
-               matrixParamValues.put(paramKey, paramValue.get().toString());
-         }
-      }
-
-      if (method.isAnnotationPresent(MatrixParam.class) && method.isAnnotationPresent(ParamParser.class)) {
-         String paramKey = method.getAnnotation(MatrixParam.class).value();
-         String paramValue = injector.getInstance(method.getAnnotation(ParamParser.class).value()).apply(args);
-         matrixParamValues.put(paramKey, paramValue);
-
-      }
-      return matrixParamValues;
+      return any(ImmutableSet.copyOf(annotations), NULLABLE);
    }
 
    //TODO: change to LoadingCache<ClassMethodArgs, Multimap<String,String> and move this logic to the CacheLoader.
    //take care to manage size of this cache
-   private Multimap<String, String> getFormParamKeyValues(Method method, Object... args) throws ExecutionException {
-      Multimap<String, String> formParamValues = LinkedHashMultimap.create();
-      LoadingCache<Integer, Set<Annotation>> indexToFormParam = methodToIndexOfParamToFormParamAnnotations.get(method);
+   private Multimap<String, Object> getFormParamKeyValues(Method method, Object... args) {
+      Multimap<String, Object> formParamValues = LinkedHashMultimap.create();
+      LoadingCache<Integer, Set<Annotation>> indexToFormParam = methodToIndexOfParamToFormParamAnnotations
+            .getUnchecked(method);
 
-      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.get(method);
+      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations
+            .getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToFormParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
-            Set<Annotation> extractors = indexToParamExtractor.get(entry.getKey());
+            Set<Annotation> extractors = indexToParamExtractor.getUnchecked(entry.getKey());
             String paramKey = ((FormParam) key).value();
             Optional<?> paramValue = getParamValue(method, args, extractors, entry, paramKey);
             if (paramValue.isPresent())
@@ -1285,24 +1216,31 @@ public class RestAnnotationProcessor<T> {
          String paramKey = method.getAnnotation(FormParam.class).value();
          String paramValue = injector.getInstance(method.getAnnotation(ParamParser.class).value()).apply(args);
          formParamValues.put(paramKey, paramValue);
-
       }
       return formParamValues;
    }
 
    //TODO: change to LoadingCache<ClassMethodArgs, Multimap<String,String> and move this logic to the CacheLoader.
-   private Multimap<String, String> getQueryParamKeyValues(Method method, Object... args) throws ExecutionException {
-      Multimap<String, String> queryParamValues = LinkedHashMultimap.create();
-      LoadingCache<Integer, Set<Annotation>> indexToQueryParam = methodToIndexOfParamToQueryParamAnnotations.get(method);
+   private Multimap<String, Object> getQueryParamKeyValues(Method method, Object... args) {
+      Multimap<String, Object> queryParamValues = LinkedHashMultimap.create();
+      LoadingCache<Integer, Set<Annotation>> indexToQueryParam = methodToIndexOfParamToQueryParamAnnotations
+            .getUnchecked(method);
 
-      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.get(method);
+      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations
+            .getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToQueryParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
-            Set<Annotation> extractors = indexToParamExtractor.get(entry.getKey());
+            Set<Annotation> extractors = indexToParamExtractor.getUnchecked(entry.getKey());
             String paramKey = ((QueryParam) key).value();
             Optional<?> paramValue = getParamValue(method, args, extractors, entry, paramKey);
-            if (paramValue.isPresent())
-               queryParamValues.put(paramKey, paramValue.get().toString());
+            if (paramValue.isPresent()) {
+               if (paramValue.get() instanceof Iterable) {                  
+                  Iterable<String> iterableStrings = transform(Iterable.class.cast(paramValue.get()), toStringFunction());
+                  queryParamValues.putAll(paramKey, iterableStrings);
+               } else {
+                  queryParamValues.put(paramKey, paramValue.get().toString());
+               }
+            }
          }
       }
 
@@ -1310,20 +1248,19 @@ public class RestAnnotationProcessor<T> {
          String paramKey = method.getAnnotation(QueryParam.class).value();
          String paramValue = injector.getInstance(method.getAnnotation(ParamParser.class).value()).apply(args);
          queryParamValues.put(paramKey, paramValue);
-
       }
       return queryParamValues;
    }
 
    //TODO: change to LoadingCache<ClassMethodArgs, Map<String,Object> and move this logic to the CacheLoader.
    //take care to manage size of this cache
-   private Map<String, Object> buildPostParams(Method method, Object... args) throws ExecutionException {
+   private Map<String, Object> buildPostParams(Method method, Object... args) {
       Map<String, Object> postParams = newHashMap();
-      LoadingCache<Integer, Set<Annotation>> indexToPathParam = methodToIndexOfParamToPostParamAnnotations.get(method);
-      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.get(method);
+      LoadingCache<Integer, Set<Annotation>> indexToPathParam = methodToIndexOfParamToPostParamAnnotations.getUnchecked(method);
+      LoadingCache<Integer, Set<Annotation>> indexToParamExtractor = methodToIndexOfParamToParamParserAnnotations.getUnchecked(method);
       for (Entry<Integer, Set<Annotation>> entry : indexToPathParam.asMap().entrySet()) {
          for (Annotation key : entry.getValue()) {
-            Set<Annotation> extractors = indexToParamExtractor.get(entry.getKey());
+            Set<Annotation> extractors = indexToParamExtractor.getUnchecked(entry.getKey());
             String paramKey = ((PayloadParam) key).value();
             Optional<?> paramValue = getParamValue(method, args, extractors, entry, paramKey);
             if (paramValue.isPresent())
@@ -1331,12 +1268,5 @@ public class RestAnnotationProcessor<T> {
          }
       }
       return postParams;
-   }
-
-   /**
-    * the class that is being processed
-    */
-   public Class<T> getDeclaring(){
-      return declaring;
    }
 }

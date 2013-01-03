@@ -20,6 +20,7 @@ package org.jclouds.cloudfiles;
 
 import java.net.URI;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -32,7 +33,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
-import org.jclouds.blobstore.functions.ReturnNullOnContainerNotFound;
+import org.jclouds.blobstore.BlobStoreFallbacks.NullOnContainerNotFound;
 import org.jclouds.cloudfiles.binders.BindIterableToHeadersWithPurgeCDNObjectEmail;
 import org.jclouds.cloudfiles.domain.ContainerCDNMetadata;
 import org.jclouds.cloudfiles.functions.ParseCdnUriFromHeaders;
@@ -44,12 +45,11 @@ import org.jclouds.openstack.swift.CommonSwiftAsyncClient;
 import org.jclouds.openstack.swift.Storage;
 import org.jclouds.rest.annotations.BinderParam;
 import org.jclouds.rest.annotations.Endpoint;
-import org.jclouds.rest.annotations.ExceptionParser;
+import org.jclouds.rest.annotations.Fallback;
 import org.jclouds.rest.annotations.Headers;
 import org.jclouds.rest.annotations.QueryParams;
 import org.jclouds.rest.annotations.RequestFilters;
 import org.jclouds.rest.annotations.ResponseParser;
-import org.jclouds.rest.annotations.SkipEncoding;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -64,7 +64,6 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @see <a href="http://www.rackspacecloud.com/cf-devguide-20090812.pdf" />
  * @author Adrian Cole
  */
-@SkipEncoding('/')
 @RequestFilters(AuthenticateRequest.class)
 @Endpoint(Storage.class)
 public interface CloudFilesAsyncClient extends CommonSwiftAsyncClient {
@@ -84,7 +83,7 @@ public interface CloudFilesAsyncClient extends CommonSwiftAsyncClient {
     */
    @HEAD
    @ResponseParser(ParseContainerCDNMetadataFromHeaders.class)
-   @ExceptionParser(ReturnNullOnContainerNotFound.class)
+   @Fallback(NullOnContainerNotFound.class)
    @Path("/{container}")
    @Endpoint(CDNManagement.class)
    ListenableFuture<ContainerCDNMetadata> getCDNMetadata(@PathParam("container") String container);
@@ -163,7 +162,7 @@ public interface CloudFilesAsyncClient extends CommonSwiftAsyncClient {
    ListenableFuture<Boolean> disableCDN(@PathParam("container") String container);
 
    /**
-    * @see CloudFilesClient#purgeCDNObject(String, String, List)
+    * @see CloudFilesClient#purgeCDNObject(String, String, Iterable)
     */
    @DELETE
    @Path("/{container}/{object}")

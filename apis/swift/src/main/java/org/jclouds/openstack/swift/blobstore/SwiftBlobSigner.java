@@ -18,10 +18,16 @@
  */
 package org.jclouds.openstack.swift.blobstore;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.io.BaseEncoding.base16;
+import static com.google.common.io.ByteStreams.readBytes;
 import static org.jclouds.blobstore.util.BlobStoreUtils.cleanRequest;
+import static org.jclouds.crypto.Macs.asByteProcessor;
+import static org.jclouds.util.Strings2.toInputStream;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
 
@@ -32,7 +38,6 @@ import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.functions.BlobToHttpGetOptions;
 import org.jclouds.crypto.Crypto;
-import org.jclouds.crypto.CryptoStreams;
 import org.jclouds.date.TimeStamp;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpRequestFilter;
@@ -46,6 +51,7 @@ import org.jclouds.rest.internal.RestAnnotationProcessor;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteProcessor;
 import com.google.inject.Provider;
 
 /**
@@ -54,7 +60,7 @@ import com.google.inject.Provider;
 @Singleton
 public class SwiftBlobSigner<T extends CommonSwiftAsyncClient> implements BlobRequestSigner {
 
-   private final RestAnnotationProcessor<T> processor;
+   private final RestAnnotationProcessor processor;
    private final Crypto crypto;
 
    private final Provider<Long> unixEpochTimestampProvider;
@@ -77,9 +83,9 @@ public class SwiftBlobSigner<T extends CommonSwiftAsyncClient> implements BlobRe
    protected SwiftBlobSigner(BlobToObject blobToObject, BlobToHttpGetOptions blob2HttpGetOptions, Crypto crypto,
          @TimeStamp Provider<Long> unixEpochTimestampProvider,
          @TemporaryUrlKey Supplier<String> temporaryUrlKeySupplier,
-         RestAnnotationProcessor<T> processor)
+         RestAnnotationProcessor.Factory processor, Class<T> clazz)
          throws SecurityException, NoSuchMethodException {
-      this.processor = checkNotNull(processor, "processor");
+      this.processor = checkNotNull(processor, "processor").declaring(clazz);
       this.crypto = checkNotNull(crypto, "crypto");
 
       this.unixEpochTimestampProvider = checkNotNull(unixEpochTimestampProvider, "unixEpochTimestampProvider");
@@ -88,9 +94,9 @@ public class SwiftBlobSigner<T extends CommonSwiftAsyncClient> implements BlobRe
       this.blobToObject = checkNotNull(blobToObject, "blobToObject");
       this.blob2HttpGetOptions = checkNotNull(blob2HttpGetOptions, "blob2HttpGetOptions");
 
-      this.getMethod = processor.getDeclaring().getMethod("getObject", String.class, String.class, GetOptions[].class);
-      this.deleteMethod = processor.getDeclaring().getMethod("removeObject", String.class, String.class);
-      this.createMethod = processor.getDeclaring().getMethod("putObject", String.class, SwiftObject.class);
+      this.getMethod = clazz.getMethod("getObject", String.class, String.class, GetOptions[].class);
+      this.deleteMethod = clazz.getMethod("removeObject", String.class, String.class);
+      this.createMethod = clazz.getMethod("putObject", String.class, SwiftObject.class);
    }
 
    @Override
@@ -146,10 +152,13 @@ public class SwiftBlobSigner<T extends CommonSwiftAsyncClient> implements BlobRe
       return String.format("%s\n%d\n%s", method.toUpperCase(), expiresInSeconds, request.getEndpoint().getPath());
    }
 
-   private String createSignature(String key, String stringToSign) {
+   private String createSignature(String key, String toSign) {
       try {
-         return CryptoStreams.hex(crypto.hmacSHA1(key.getBytes()).doFinal(stringToSign.getBytes()));
+         ByteProcessor<byte[]> hmacSHA1 = asByteProcessor(crypto.hmacSHA1(key.getBytes(UTF_8)));
+         return base16().lowerCase().encode(readBytes(toInputStream(toSign), hmacSHA1));
       } catch (InvalidKeyException e) {
+         throw Throwables.propagate(e);
+      } catch (IOException e) {
          throw Throwables.propagate(e);
       }
    }

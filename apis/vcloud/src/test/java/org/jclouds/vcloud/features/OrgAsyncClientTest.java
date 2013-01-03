@@ -22,17 +22,14 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.vcloud.internal.BaseVCloudAsyncClientTest;
 import org.jclouds.vcloud.xml.OrgHandler;
 import org.jclouds.vcloud.xml.OrgListHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code OrgAsyncClient}
@@ -44,12 +41,6 @@ import com.google.inject.TypeLiteral;
 @Test(groups = "unit", testName = "OrgAsyncClientTest")
 public class OrgAsyncClientTest extends BaseVCloudAsyncClientTest<OrgAsyncClient> {
 
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<OrgAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<OrgAsyncClient>>() {
-      };
-   }
-
    public void testlistOrgs() throws SecurityException, NoSuchMethodException, IOException {
       Method method = OrgAsyncClient.class.getMethod("listOrgs");
       HttpRequest request = processor.createRequest(method);
@@ -60,7 +51,7 @@ public class OrgAsyncClientTest extends BaseVCloudAsyncClientTest<OrgAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgListHandler.class);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(request);
    }
@@ -76,7 +67,7 @@ public class OrgAsyncClientTest extends BaseVCloudAsyncClientTest<OrgAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -91,7 +82,7 @@ public class OrgAsyncClientTest extends BaseVCloudAsyncClientTest<OrgAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }

@@ -22,18 +22,15 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.ec2.domain.IpProtocol;
 import org.jclouds.ec2.domain.UserIdGroupPair;
 import org.jclouds.ec2.xml.DescribeSecurityGroupsResponseHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code SecurityGroupAsyncClient}
@@ -56,7 +53,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -74,7 +71,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -91,7 +88,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeSecurityGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -108,7 +105,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeSecurityGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -128,7 +125,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -143,18 +140,18 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
       try {
          assertPayloadEquals(
                request,
-               "Action=AuthorizeSecurityGroupIngress&CidrIp=0.0.0.0%2F0&IpProtocol=tcp&GroupName=group&FromPort=6000&ToPort=7000",
+               "Action=AuthorizeSecurityGroupIngress&CidrIp=0.0.0.0/0&IpProtocol=tcp&GroupName=group&FromPort=6000&ToPort=7000",
                "application/x-www-form-urlencoded", false);
       } catch (AssertionError e) {
          // mvn 3.0 osx 10.6.5 somehow sorts differently
          assertPayloadEquals(
                request,
-               "Action=AuthorizeSecurityGroupIngress&CidrIp=0.0.0.0%2F0&IpProtocol=tcp&GroupName=group&ToPort=7000&FromPort=6000",
+               "Action=AuthorizeSecurityGroupIngress&CidrIp=0.0.0.0/0&IpProtocol=tcp&GroupName=group&ToPort=7000&FromPort=6000",
                "application/x-www-form-urlencoded", false);
       }
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -174,7 +171,7 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -189,26 +186,19 @@ public class SecurityGroupAsyncClientTest extends BaseEC2AsyncClientTest<Securit
       try {
          assertPayloadEquals(
                request,
-               "Action=RevokeSecurityGroupIngress&CidrIp=0.0.0.0%2F0&IpProtocol=tcp&GroupName=group&FromPort=6000&ToPort=7000",
+               "Action=RevokeSecurityGroupIngress&CidrIp=0.0.0.0/0&IpProtocol=tcp&GroupName=group&FromPort=6000&ToPort=7000",
                "application/x-www-form-urlencoded", false);
       } catch (AssertionError e) {
          // mvn 3.0 osx 10.6.5 somehow sorts differently
          assertPayloadEquals(
                request,
-               "Action=RevokeSecurityGroupIngress&CidrIp=0.0.0.0%2F0&IpProtocol=tcp&GroupName=group&ToPort=7000&FromPort=6000",
+               "Action=RevokeSecurityGroupIngress&CidrIp=0.0.0.0/0&IpProtocol=tcp&GroupName=group&ToPort=7000&FromPort=6000",
                "application/x-www-form-urlencoded", false);
       }
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<SecurityGroupAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<SecurityGroupAsyncClient>>() {
-      };
-   }
-
 }

@@ -28,11 +28,8 @@ import org.jclouds.http.functions.ParseSax;
 import org.jclouds.providers.AnonymousProviderMetadata;
 import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.rest.internal.BaseAsyncClientTest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.vcloud.xml.SupportedVersionsHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code VCloudVersionsAsyncClient}
@@ -53,7 +50,7 @@ public class VCloudVersionsAsyncClientTest extends BaseAsyncClientTest<VCloudVer
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, SupportedVersionsHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -61,12 +58,6 @@ public class VCloudVersionsAsyncClientTest extends BaseAsyncClientTest<VCloudVer
    @Override
    protected void checkFilters(HttpRequest request) {
       assertEquals(request.getFilters().size(), 0);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<VCloudVersionsAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<VCloudVersionsAsyncClient>>() {
-      };
    }
 
    @Override

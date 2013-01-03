@@ -18,6 +18,9 @@
  */
 package org.jclouds.aws.s3;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.util.Properties;
 
 import org.jclouds.apis.ApiMetadata;
@@ -39,19 +42,16 @@ import com.google.inject.Module;
 public class AWSS3ApiMetadata extends S3ApiMetadata {
    
    public static final TypeToken<RestContext<AWSS3Client, AWSS3AsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<AWSS3Client, AWSS3AsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
-   
-   private static Builder builder() {
-      return new Builder();
-   }
 
    @Override
    public Builder toBuilder() {
-      return builder().fromApiMetadata(this);
+      return new Builder().fromApiMetadata(this);
    }
 
    public AWSS3ApiMetadata() {
-      this(builder());
+      this(new Builder());
    }
 
    protected AWSS3ApiMetadata(Builder builder) {
@@ -60,10 +60,12 @@ public class AWSS3ApiMetadata extends S3ApiMetadata {
    
    public static Properties defaultProperties() {
       Properties properties = S3ApiMetadata.defaultProperties();
+      // 128KB/s for max size of 5GB
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AWSS3Client.uploadPart", SECONDS.toMillis(5242880 / 128) + "");
       return properties;
    }
 
-   public static class Builder extends S3ApiMetadata.Builder {
+   public static class Builder extends S3ApiMetadata.Builder<Builder> {
       protected Builder(){
          super(AWSS3Client.class, AWSS3AsyncClient.class);
          id("aws-s3")
@@ -80,10 +82,8 @@ public class AWSS3ApiMetadata extends S3ApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }
-
 }

@@ -27,7 +27,7 @@ import com.google.common.base.Optional;
 /**
  * @author Adrian Cole
  */
-@Test(groups = "live")
+@Test(groups = "live",enabled = false)
 public class WindowsApiLiveTest extends BaseEC2ApiLiveTest {
 
    protected WindowsApi api() {

@@ -18,6 +18,10 @@
  */
 package org.jclouds.softlayer;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -40,6 +44,7 @@ import com.google.inject.Module;
 public class SoftLayerApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<SoftLayerClient, SoftLayerAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<SoftLayerClient, SoftLayerAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
    
    @Override
@@ -57,14 +62,14 @@ public class SoftLayerApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(90) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "ProductPackageClient", MINUTES.toMillis(3) + "");
       properties.setProperty("jclouds.ssh.max-retries", "5");
       properties.setProperty("jclouds.ssh.retry-auth", "true");
       return properties;
    }
 
-   public static class Builder
-         extends
-         BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(SoftLayerClient.class, SoftLayerAsyncClient.class);
@@ -86,11 +91,8 @@ public class SoftLayerApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

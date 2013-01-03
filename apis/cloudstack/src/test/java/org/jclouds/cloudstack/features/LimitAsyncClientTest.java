@@ -21,15 +21,12 @@ package org.jclouds.cloudstack.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.cloudstack.options.ListResourceLimitsOptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code LimitAsyncClient}
@@ -50,7 +47,7 @@ public class LimitAsyncClientTest extends BaseCloudStackAsyncClientTest<LimitAsy
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -67,15 +64,9 @@ public class LimitAsyncClientTest extends BaseCloudStackAsyncClientTest<LimitAsy
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<LimitAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<LimitAsyncClient>>() {
-      };
    }
 }

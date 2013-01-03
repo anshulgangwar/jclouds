@@ -18,14 +18,8 @@
  */
 package org.jclouds.ec2.xml;
 
-import static org.jclouds.util.SaxUtils.currentOrNull;
-import static org.jclouds.util.SaxUtils.equalsOrSuffix;
-
-import java.util.Date;
-import java.util.Set;
-
-import javax.inject.Inject;
-
+import com.google.common.base.Supplier;
+import com.google.common.collect.Sets;
 import org.jclouds.aws.util.AWSUtils;
 import org.jclouds.date.DateCodec;
 import org.jclouds.date.DateCodecFactory;
@@ -40,9 +34,13 @@ import org.jclouds.http.functions.ParseSax.HandlerForGeneratedRequestWithResult;
 import org.jclouds.location.Region;
 import org.xml.sax.Attributes;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Sets;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import java.util.Date;
+import java.util.Set;
+
+import static org.jclouds.util.SaxUtils.currentOrNull;
+import static org.jclouds.util.SaxUtils.equalsOrSuffix;
+
 
 /**
  * 
@@ -52,25 +50,34 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
 
    protected final DateCodec dateCodec;
    protected final Supplier<String> defaultRegion;
-   protected final Provider<Builder> builderProvider;
 
    @Inject
-   public BaseReservationHandler(DateCodecFactory dateCodecFactory, @Region Supplier<String> defaultRegion,
-            Provider<RunningInstance.Builder> builderProvider) {
+   public BaseReservationHandler(DateCodecFactory dateCodecFactory, @Region Supplier<String> defaultRegion) {
       this.dateCodec = dateCodecFactory.iso8601();
       this.defaultRegion = defaultRegion;
-      this.builderProvider = builderProvider;
-      this.builder = builderProvider.get();
+   }
+
+   protected Builder<?> builder = newBuilder();
+
+   protected Builder<?> newBuilder() {
+      return RunningInstance.builder();
+   }
+
+   protected void inItem() {
+      if (endOfInstanceItem()) {
+         refineBuilderBeforeAddingInstance();
+         instances.add(builder.build());
+         builder = newBuilder();
+      }
    }
 
    protected StringBuilder currentText = new StringBuilder();
-
-   protected Builder builder;
-
    protected int itemDepth;
    protected boolean inInstancesSet;
    protected boolean inProductCodes;
    protected boolean inGroupSet;
+   protected boolean inTagSet;
+   protected boolean inVpcGroupSet;
 
    // attachments
    private String volumeId;
@@ -96,8 +103,14 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = true;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = true;
-      } 
+         if(!inInstancesSet) {
+            inGroupSet = true;
+         } else {
+            inVpcGroupSet = true;
+         }
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+         inTagSet = true;
+      }
    }
 
    public void endElement(String uri, String name, String qName) {
@@ -109,8 +122,14 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = false;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = false;
-      } else if (equalsOrSuffix(qName, "groupId")) {
+         if(!inInstancesSet) {
+            inGroupSet = false;
+         } else {
+            inVpcGroupSet = false;
+         }
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+         inTagSet = false;
+      } else if (equalsOrSuffix(qName, "groupId")  && !inVpcGroupSet) {
          groupNames.add(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "ownerId")) {
          ownerId = currentOrNull(currentText);
@@ -121,10 +140,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "amiLaunchIndex")) {
          builder.amiLaunchIndex(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "dnsName")) {
-         String dnsName = currentOrNull(currentText);
-         // Eucalyptus
-         if (!"0.0.0.0".equals(dnsName))
-            builder.dnsName(dnsName);
+         builder.dnsName(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "imageId")) {
          builder.imageId(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "instanceId")) {
@@ -152,10 +168,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "platform")) {
          builder.platform(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "privateDnsName")) {
-         String privateDnsName = currentOrNull(currentText);
-         // Eucalyptus
-         if (!"0.0.0.0".equals(privateDnsName))
-            builder.privateDnsName(privateDnsName);
+         builder.privateDnsName(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "privateIpAddress")) {
          builder.privateIpAddress(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "ramdiskId")) {
@@ -163,7 +176,14 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "reason")) {
          builder.reason(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "rootDeviceType")) {
-         builder.rootDeviceType(RootDeviceType.fromValue(currentOrNull(currentText)));
+         //For CloudStack rootDeviceType is set to empty string
+         RootDeviceType rootDeviceType = RootDeviceType.EBS;
+         try{
+         rootDeviceType = RootDeviceType.fromValue(currentOrNull(currentText));
+         } catch (NullPointerException e){
+
+         }
+         builder.rootDeviceType(rootDeviceType);
       } else if (equalsOrSuffix(qName, "rootDeviceName")) {
          builder.rootDeviceName(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "deviceName")) {
@@ -187,38 +207,15 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       currentText = new StringBuilder();
    }
 
-   protected void inItem() {
-      if (endOfInstanceItem()) {
-         refineBuilderBeforeAddingInstance();
-         instances.add(builder.build());
-         builder = builderProvider.get();
-      }
-   }
 
    protected void refineBuilderBeforeAddingInstance() {
       String region = getRequest() != null ? AWSUtils.findRegionInArgsOrNull(getRequest()) : null;
-
-      // Eucalyptus
-      if (builder.getIpAddress() == null && builder.getDnsName() != null && builder.getDnsName().matches(".*[0-9]$")) {
-         builder.ipAddress(builder.getDnsName());
-         builder.dnsName(null);
-      }
-      if (builder.getPrivateIpAddress() == null && builder.getPrivateDnsName() != null
-            && builder.getPrivateDnsName().matches(".*[0-9]$")) {
-         builder.privateIpAddress(builder.getPrivateDnsName());
-         builder.privateDnsName(null);
-      }
-
       builder.region((region == null) ? defaultRegion.get() : region);
       builder.groupNames(groupNames);
    }
 
-   protected Builder builder() {
-      return builder;
-   }
-
    protected boolean endOfInstanceItem() {
-      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet;
+      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet && !inTagSet && !inVpcGroupSet;
    }
 
    public void characters(char ch[], int start, int length) {

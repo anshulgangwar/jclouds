@@ -30,6 +30,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.abiquo.AbiquoFallbacks.FalseIfNotAvailable;
+import org.jclouds.abiquo.AbiquoFallbacks.PropagateAbiquoExceptionOnNotFoundOr4xx;
 import org.jclouds.abiquo.binders.AppendToPath;
 import org.jclouds.abiquo.binders.BindToPath;
 import org.jclouds.abiquo.binders.BindToXMLPayloadAndPath;
@@ -45,8 +48,6 @@ import org.jclouds.abiquo.domain.infrastructure.options.StoragePoolOptions;
 import org.jclouds.abiquo.domain.network.options.IpOptions;
 import org.jclouds.abiquo.domain.network.options.NetworkOptions;
 import org.jclouds.abiquo.domain.options.search.FilterOptions;
-import org.jclouds.abiquo.functions.ReturnAbiquoExceptionOnNotFoundOr4xx;
-import org.jclouds.abiquo.functions.ReturnFalseIfNotAvailable;
 import org.jclouds.abiquo.functions.infrastructure.ParseDatacenterId;
 import org.jclouds.abiquo.http.filters.AbiquoAuthentication;
 import org.jclouds.abiquo.http.filters.AppendApiVersionToMediaType;
@@ -54,13 +55,12 @@ import org.jclouds.abiquo.reference.annotations.EnterpriseEdition;
 import org.jclouds.abiquo.rest.annotations.EndpointLink;
 import org.jclouds.http.functions.ReturnStringIf2xx;
 import org.jclouds.rest.annotations.BinderParam;
-import org.jclouds.rest.annotations.ExceptionParser;
+import org.jclouds.rest.annotations.Fallback;
 import org.jclouds.rest.annotations.JAXBResponseParser;
 import org.jclouds.rest.annotations.ParamParser;
 import org.jclouds.rest.annotations.RequestFilters;
 import org.jclouds.rest.annotations.ResponseParser;
 import org.jclouds.rest.binders.BindToXMLPayload;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
 
 import com.abiquo.model.enumerator.HypervisorType;
 import com.abiquo.model.enumerator.RemoteServiceType;
@@ -89,6 +89,8 @@ import com.abiquo.server.core.infrastructure.UcsRackDto;
 import com.abiquo.server.core.infrastructure.UcsRacksDto;
 import com.abiquo.server.core.infrastructure.network.ExternalIpDto;
 import com.abiquo.server.core.infrastructure.network.ExternalIpsDto;
+import com.abiquo.server.core.infrastructure.network.NetworkServiceTypeDto;
+import com.abiquo.server.core.infrastructure.network.NetworkServiceTypesDto;
 import com.abiquo.server.core.infrastructure.network.PublicIpDto;
 import com.abiquo.server.core.infrastructure.network.PublicIpsDto;
 import com.abiquo.server.core.infrastructure.network.UnmanagedIpDto;
@@ -145,7 +147,7 @@ public interface InfrastructureAsyncApi {
    @Path("/datacenters/{datacenter}")
    @Consumes(DatacenterDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<DatacenterDto> getDatacenter(@PathParam("datacenter") Integer datacenterId);
 
    /**
@@ -171,7 +173,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineDto> discoverSingleMachine(
          @EndpointLink("discoversingle") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("hypervisor") HypervisorType hypervisorType,
@@ -184,7 +186,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineDto> discoverSingleMachine(
          @EndpointLink("discoversingle") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("hypervisor") HypervisorType hypervisorType,
@@ -197,7 +199,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachinesDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineDto> discoverMultipleMachines(
          @EndpointLink("discovermultiple") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ipFrom") String ipFrom, @QueryParam("ipTo") String ipTo,
@@ -211,7 +213,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachinesDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineDto> discoverMultipleMachines(
          @EndpointLink("discovermultiple") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ipFrom") String ipFrom, @QueryParam("ipTo") String ipTo,
@@ -234,7 +236,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineStateDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineStateDto> checkMachineState(
          @EndpointLink("checkmachinestate") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("hypervisor") HypervisorType hypervisorType,
@@ -247,7 +249,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineStateDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineStateDto> checkMachineState(
          @EndpointLink("checkmachinestate") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("hypervisor") HypervisorType hypervisorType,
@@ -260,7 +262,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineIpmiStateDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineIpmiStateDto> checkMachineIpmiState(
          @EndpointLink("checkmachineipmistate") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("user") String user, @QueryParam("password") String password);
@@ -272,7 +274,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineIpmiStateDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnAbiquoExceptionOnNotFoundOr4xx.class)
+   @Fallback(PropagateAbiquoExceptionOnNotFoundOr4xx.class)
    ListenableFuture<MachineIpmiStateDto> checkMachineIpmiState(
          @EndpointLink("checkmachineipmistate") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @QueryParam("ip") String ip, @QueryParam("user") String user, @QueryParam("password") String password,
@@ -324,7 +326,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(RackDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<RackDto> getRack(@EndpointLink("racks") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @BinderParam(AppendToPath.class) Integer rackId);
 
@@ -374,7 +376,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(UcsRackDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<UcsRackDto> getManagedRack(
          @EndpointLink("racks") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @BinderParam(AppendToPath.class) Integer rackId);
@@ -554,7 +556,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(RemoteServiceDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<RemoteServiceDto> getRemoteService(
          @EndpointLink("remoteservices") @BinderParam(BindToPath.class) final DatacenterDto datacenter,
          @BinderParam(AppendRemoteServiceTypeToPath.class) final RemoteServiceType remoteServiceType);
@@ -580,7 +582,7 @@ public interface InfrastructureAsyncApi {
     * @see InfrastructureApi#isAvailable(RemoteServiceDto)
     */
    @GET
-   @ExceptionParser(ReturnFalseIfNotAvailable.class)
+   @Fallback(FalseIfNotAvailable.class)
    ListenableFuture<Boolean> isAvailable(
          @EndpointLink("check") @BinderParam(BindToPath.class) RemoteServiceDto remoteService);
 
@@ -610,7 +612,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(MachineDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<MachineDto> getMachine(@EndpointLink("machines") @BinderParam(BindToPath.class) final RackDto rack,
          @BinderParam(AppendToPath.class) Integer machineId);
 
@@ -733,7 +735,7 @@ public interface InfrastructureAsyncApi {
     * @see InfrastructureApi#getVirtualMachine(MachineDto, Integer)
     */
    @GET
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    @Consumes(VirtualMachineWithNodeExtendedDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
    ListenableFuture<VirtualMachineWithNodeExtendedDto> getVirtualMachine(
@@ -769,7 +771,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(StorageDeviceDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<StorageDeviceDto> getStorageDevice(
          @EndpointLink("devices") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @BinderParam(AppendToPath.class) Integer storageDeviceId);
@@ -834,7 +836,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(TierDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<TierDto> getTier(@EndpointLink("tiers") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @BinderParam(AppendToPath.class) Integer tierId);
 
@@ -901,7 +903,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(StoragePoolDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<StoragePoolDto> getStoragePool(
          @EndpointLink("pools") @BinderParam(BindToPath.class) final StorageDeviceDto storageDevice,
          @BinderParam(AppendToPath.class) final String storagePoolId);
@@ -946,7 +948,7 @@ public interface InfrastructureAsyncApi {
    @GET
    @Consumes(VLANNetworkDto.BASE_MEDIA_TYPE)
    @JAXBResponseParser
-   @ExceptionParser(ReturnNullOnNotFoundOr404.class)
+   @Fallback(NullOnNotFoundOr404.class)
    ListenableFuture<VLANNetworkDto> getNetwork(
          @EndpointLink("network") @BinderParam(BindToPath.class) DatacenterDto datacenter,
          @BinderParam(AppendToPath.class) Integer networkId);
@@ -1078,4 +1080,62 @@ public interface InfrastructureAsyncApi {
    ListenableFuture<UnmanagedIpDto> getUnmanagedIp(
          @EndpointLink("ips") @BinderParam(BindToPath.class) VLANNetworkDto network,
          @BinderParam(AppendToPath.class) Integer ipId);
+
+   /***************************** NETWORK SERVICE TYPES *******************************************/
+
+   /**
+    * @see InfrastructureApi#listNetworkServiceTypes(DatacenterDto)
+    */
+   @GET
+   @Consumes(NetworkServiceTypesDto.BASE_MEDIA_TYPE)
+   @JAXBResponseParser
+   ListenableFuture<NetworkServiceTypesDto> listNetworkServiceTypes(
+         @EndpointLink("networkservicetypes") @BinderParam(BindToPath.class) DatacenterDto datacenter);
+
+   /**
+    * @see InfrastructureApi#createNetworkServiceType(DatacenterDto,
+    *      NetworkServiceTypeDto)
+    */
+   @POST
+   @Produces(NetworkServiceTypeDto.BASE_MEDIA_TYPE)
+   @Consumes(NetworkServiceTypeDto.BASE_MEDIA_TYPE)
+   @JAXBResponseParser
+   ListenableFuture<NetworkServiceTypeDto> createNetworkServiceType(
+         @EndpointLink("networkservicetypes") @BinderParam(BindToPath.class) DatacenterDto datacenter,
+         @BinderParam(BindToXMLPayload.class) NetworkServiceTypeDto nst);
+
+   /**
+    * @see InfrastructureApi#getNetworkServiceType(DatacenterDto, Integer)
+    */
+   @GET
+   @Consumes(NetworkServiceTypeDto.BASE_MEDIA_TYPE)
+   @JAXBResponseParser
+   @Fallback(NullOnNotFoundOr404.class)
+   ListenableFuture<NetworkServiceTypeDto> getNetworkServiceType(
+         @EndpointLink("networkservicetypes") @BinderParam(BindToPath.class) DatacenterDto datacenter,
+         @BinderParam(AppendToPath.class) Integer nstId);
+
+   /**
+    * Update the value of a {@link NetworkServiceTypeDto}
+    * 
+    * @param nstDto
+    *           the instance to update with the new values.
+    * @return the updated entity.
+    */
+   @PUT
+   @Produces(NetworkServiceTypeDto.BASE_MEDIA_TYPE)
+   @Consumes(NetworkServiceTypeDto.BASE_MEDIA_TYPE)
+   @JAXBResponseParser
+   ListenableFuture<NetworkServiceTypeDto> updateNetworkServiceType(
+         @EndpointLink("edit") @BinderParam(BindToXMLPayloadAndPath.class) NetworkServiceTypeDto nstDto);
+
+   /**
+    * Remove a {@link NetworkServiceTypeDto} entity.
+    * 
+    * @param nstDto
+    *           the entity to delete
+    */
+   @DELETE
+   ListenableFuture<Void> deleteNetworkServiceType(
+         @EndpointLink("edit") @BinderParam(BindToPath.class) NetworkServiceTypeDto nstDto);
 }

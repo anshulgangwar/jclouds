@@ -18,15 +18,13 @@
  */
 package org.jclouds.ec2.xml;
 
-import javax.inject.Inject;
-
+import com.google.common.base.Supplier;
 import org.jclouds.date.DateCodecFactory;
 import org.jclouds.ec2.domain.Reservation;
 import org.jclouds.ec2.domain.RunningInstance;
 import org.jclouds.location.Region;
 
-import com.google.common.base.Supplier;
-import com.google.inject.Provider;
+import javax.inject.Inject;
 
 /**
  * Parses the following XML document:
@@ -39,9 +37,8 @@ import com.google.inject.Provider;
 public class RunInstancesResponseHandler extends BaseReservationHandler<Reservation<? extends RunningInstance>> {
 
    @Inject
-   public RunInstancesResponseHandler(DateCodecFactory dateCodecFactory, @Region Supplier<String> defaultRegion,
-            Provider<RunningInstance.Builder> builderProvider) {
-      super(dateCodecFactory, defaultRegion, builderProvider);
+   public RunInstancesResponseHandler(DateCodecFactory dateCodecFactory, @Region Supplier<String> defaultRegion) {
+      super(dateCodecFactory, defaultRegion);
    }
 
    @Override

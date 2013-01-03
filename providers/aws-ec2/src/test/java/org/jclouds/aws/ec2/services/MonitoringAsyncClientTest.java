@@ -25,10 +25,7 @@ import java.lang.reflect.Method;
 import org.jclouds.aws.ec2.xml.MonitoringStateHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code MonitoringAsyncClient}
@@ -51,7 +48,7 @@ public class MonitoringAsyncClientTest extends BaseAWSEC2AsyncClientTest<Monitor
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, MonitoringStateHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -69,15 +66,8 @@ public class MonitoringAsyncClientTest extends BaseAWSEC2AsyncClientTest<Monitor
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, MonitoringStateHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<MonitoringAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<MonitoringAsyncClient>>() {
-      };
-   }
-
 }

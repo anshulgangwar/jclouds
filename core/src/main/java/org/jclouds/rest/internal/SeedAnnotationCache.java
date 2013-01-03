@@ -25,7 +25,6 @@ import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfP
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToEndpointParamAnnotations;
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToFormParamAnnotations;
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToHeaderParamAnnotations;
-import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToMatrixParamAnnotations;
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToParamParserAnnotations;
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToPartParamAnnotations;
 import static org.jclouds.rest.internal.RestAnnotationProcessor.methodToIndexOfParamToPathParamAnnotations;
@@ -43,14 +42,15 @@ import javax.ws.rs.Path;
 
 import org.jclouds.http.HttpRequest;
 import org.jclouds.logging.Logger;
+import org.jclouds.rest.RestContext;
 import org.jclouds.rest.annotations.Delegate;
 import org.jclouds.rest.internal.RestAnnotationProcessor.MethodKey;
 
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import com.google.common.util.concurrent.Callables;
 import com.google.inject.Provides;
 
 /**
@@ -62,21 +62,13 @@ import com.google.inject.Provides;
  * @author Adrian Cole
  */
 @Singleton
-public class SeedAnnotationCache extends CacheLoader<Class<?>, Boolean> {
+public final class SeedAnnotationCache extends CacheLoader<Class<?>, Cache<MethodKey, Method>> {
    @Resource
-   protected Logger logger = Logger.NULL;
-
-   protected final Injector injector;
-   protected final Cache<MethodKey, Method> delegationMap;
-
-   @Inject
-   public SeedAnnotationCache(Injector injector, Cache<MethodKey, Method> delegationMap) {
-      this.injector = injector;
-      this.delegationMap = delegationMap;
-   }
+   private Logger logger = Logger.NULL;
 
    @Override
-   public Boolean load(Class<?> declaring) throws ExecutionException {
+   public Cache<MethodKey, Method> load(Class<?> declaring) throws ExecutionException {
+      Cache<MethodKey, Method> delegationMap = CacheBuilder.newBuilder().<MethodKey, Method>build();
       for (Method method : difference(ImmutableSet.copyOf(declaring.getMethods()), ImmutableSet.copyOf(Object.class
                .getMethods()))) {
          if (isHttpMethod(method) || method.isAnnotationPresent(Delegate.class)) {
@@ -84,7 +76,6 @@ public class SeedAnnotationCache extends CacheLoader<Class<?>, Boolean> {
                methodToIndexOfParamToBinderParamAnnotation.get(method).get(index);
                methodToIndexOfParamToWrapWithAnnotation.get(method).get(index);
                methodToIndexOfParamToHeaderParamAnnotations.get(method).get(index);
-               methodToIndexOfParamToMatrixParamAnnotations.get(method).get(index);
                methodToIndexOfParamToFormParamAnnotations.get(method).get(index);
                methodToIndexOfParamToQueryParamAnnotations.get(method).get(index);
                methodToIndexOfParamToEndpointAnnotations.get(method).get(index);
@@ -95,7 +86,7 @@ public class SeedAnnotationCache extends CacheLoader<Class<?>, Boolean> {
                methodToIndexOfParamToPartParamAnnotations.get(method).get(index);
                methodToIndexesOfOptions.get(method);
             }
-            delegationMap.put(new MethodKey(method), method);
+            delegationMap.get(new MethodKey(method), Callables.returning(method));
          } else if (!method.getDeclaringClass().equals(declaring)) {
             logger.trace("skipping potentially overridden method %s", method);
          } else if (method.isAnnotationPresent(Provides.class)) {
@@ -104,11 +95,11 @@ public class SeedAnnotationCache extends CacheLoader<Class<?>, Boolean> {
             logger.trace("Method is not annotated as either http or provider method: %s", method);
          }
       }
-      return true;
+      return delegationMap;
    }
 
    public static boolean isHttpMethod(Method method) {
-      return method.isAnnotationPresent(Path.class) || getHttpMethods(method) != null
+      return method.isAnnotationPresent(Path.class) || !getHttpMethods(method).isEmpty()
                || ImmutableSet.copyOf(method.getParameterTypes()).contains(HttpRequest.class);
    }
 

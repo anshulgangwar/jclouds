@@ -21,20 +21,17 @@ package org.jclouds.cloudstack.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.cloudstack.domain.PortForwardingRule;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.cloudstack.options.ListPortForwardingRulesOptions;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
 import org.jclouds.http.functions.UnwrapOnlyJsonValue;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code FirewallAsyncClient}
@@ -57,7 +54,7 @@ public class FirewallAsyncClientTest extends BaseCloudStackAsyncClientTest<Firew
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -75,7 +72,7 @@ public class FirewallAsyncClientTest extends BaseCloudStackAsyncClientTest<Firew
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -95,7 +92,7 @@ public class FirewallAsyncClientTest extends BaseCloudStackAsyncClientTest<Firew
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -112,15 +109,9 @@ public class FirewallAsyncClientTest extends BaseCloudStackAsyncClientTest<Firew
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<FirewallAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<FirewallAsyncClient>>() {
-      };
    }
 }

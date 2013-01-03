@@ -21,16 +21,13 @@ package org.jclouds.aws.ec2.services;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.aws.ec2.xml.DescribePlacementGroupsResponseHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code PlacementGroupAsyncClient}
@@ -53,7 +50,7 @@ public class PlacementGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<Pla
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -70,7 +67,7 @@ public class PlacementGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<Pla
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -87,7 +84,7 @@ public class PlacementGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<Pla
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -104,7 +101,7 @@ public class PlacementGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<Pla
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribePlacementGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -121,15 +118,8 @@ public class PlacementGroupAsyncClientTest extends BaseAWSEC2AsyncClientTest<Pla
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribePlacementGroupsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<PlacementGroupAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<PlacementGroupAsyncClient>>() {
-      };
-   }
-
 }

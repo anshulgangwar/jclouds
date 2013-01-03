@@ -18,6 +18,8 @@
  */
 package org.jclouds.openstack.cinder.v1;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties.CREDENTIAL_TYPE;
 import static org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties.SERVICE_TYPE;
 
@@ -46,6 +48,7 @@ import com.google.inject.Module;
 public class CinderApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<CinderApi, CinderAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<CinderApi, CinderAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -63,14 +66,13 @@ public class CinderApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
-      
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(3) + "");
       properties.setProperty(SERVICE_TYPE, ServiceType.BLOCK_STORAGE);
       properties.setProperty(CREDENTIAL_TYPE, CredentialTypes.PASSWORD_CREDENTIALS);
-      
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(CinderApi.class, CinderAsyncApi.class);
@@ -89,7 +91,7 @@ public class CinderApiMetadata extends BaseRestApiMetadata {
                                      .add(CinderParserModule.class)
                                      .add(CinderRestClientModule.class)
                                      .build());
-      }  
+      }
       
       @Override
       public CinderApiMetadata build() {
@@ -97,8 +99,7 @@ public class CinderApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }

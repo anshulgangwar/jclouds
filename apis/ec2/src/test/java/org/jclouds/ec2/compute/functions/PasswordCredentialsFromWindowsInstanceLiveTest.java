@@ -18,13 +18,10 @@
  */
 package org.jclouds.ec2.compute.functions;
 
-import static org.jclouds.compute.options.TemplateOptions.Builder.inboundPorts;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-
-import java.util.Properties;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.inject.Module;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilderSpec;
@@ -33,17 +30,19 @@ import org.jclouds.compute.predicates.NodePredicates;
 import org.jclouds.encryption.bouncycastle.config.BouncyCastleCryptoModule;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.inject.Module;
+import java.util.Properties;
+
+import static org.jclouds.compute.options.TemplateOptions.Builder.inboundPorts;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 /**
  * Tests behavior of {@code WindowsApi}
  * 
  * @author Adrian Cole
  */
-@Test(groups = "live", singleThreaded = true, testName = "PasswordCredentialsFromWindowsInstanceLiveTest")
+@Test(groups = "live", singleThreaded = true, testName = "PasswordCredentialsFromWindowsInstanceLiveTest", enabled = false)
 public class PasswordCredentialsFromWindowsInstanceLiveTest extends BaseComputeServiceContextLiveTest {
    protected TemplateBuilderSpec windowsTemplate;
 

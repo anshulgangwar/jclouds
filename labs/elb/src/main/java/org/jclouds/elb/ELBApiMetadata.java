@@ -18,6 +18,8 @@
  */
 package org.jclouds.elb;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
 
@@ -43,6 +45,7 @@ import com.google.inject.Module;
 public class ELBApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<ELBApi, ELBAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<ELBApi, ELBAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -60,12 +63,13 @@ public class ELBApiMetadata extends BaseRestApiMetadata {
    
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(30) + "");
       properties.setProperty(PROPERTY_AUTH_TAG, "AWS");
       properties.setProperty(PROPERTY_HEADER_TAG, "amz");
       return properties;
    }
    
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder(Class<?> api, Class<?> asyncApi) {
          super(api, asyncApi);
@@ -85,12 +89,10 @@ public class ELBApiMetadata extends BaseRestApiMetadata {
       public ELBApiMetadata build() {
          return new ELBApiMetadata(this);
       }
-      
+
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }
-
 }

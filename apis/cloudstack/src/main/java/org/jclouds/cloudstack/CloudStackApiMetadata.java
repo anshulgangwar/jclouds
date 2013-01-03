@@ -18,6 +18,9 @@
  */
 package org.jclouds.cloudstack;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -35,23 +38,12 @@ import com.google.inject.Module;
 /**
  * Implementation of {@link ApiMetadata} for Citrix/Apache CloudStack api.
  * 
- * <h3>note</h3>
- * <p/>
- * This class allows overriding of types {@code S}(client) and {@code A}
- * (asyncClient), so that children can add additional methods not declared here,
- * such as new features from AWS.
- * <p/>
- * 
- * As this is a popular api, we also allow overrides for type {@code C}
- * (context). This allows subtypes to add in new feature groups or extensions,
- * not present in the base api. For example, you could make a subtype for
- * context, that exposes admin operations.
- * 
  * @author Adrian Cole
  */
 public class CloudStackApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<CloudStackClient, CloudStackAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<CloudStackClient, CloudStackAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
    
    @Override
@@ -69,13 +61,15 @@ public class CloudStackApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(1) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AddressClient.disassociateIPAddress", MINUTES.toMillis(2) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "NATClient.enableStaticNATForVirtualMachine", MINUTES.toMillis(2) + "");
       properties.setProperty("jclouds.ssh.max-retries", "7");
       properties.setProperty("jclouds.ssh.retry-auth", "true");
       return properties;
    }
 
-   public static class Builder
-         extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(CloudStackClient.class, CloudStackAsyncClient.class);
@@ -98,13 +92,10 @@ public class CloudStackApiMetadata extends BaseRestApiMetadata {
       public CloudStackApiMetadata build() {
          return new CloudStackApiMetadata(this);
       }
-      
+
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

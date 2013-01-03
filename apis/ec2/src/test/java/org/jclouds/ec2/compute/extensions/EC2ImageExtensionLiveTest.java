@@ -32,7 +32,7 @@ import com.google.inject.Module;
  * @author David Alves
  * 
  */
-@Test(groups = "live", singleThreaded = true, testName = "EC2ImageExtensionLiveTest")
+@Test(groups = "live", singleThreaded = true, testName = "EC2ImageExtensionLiveTest", enabled = false)
 public class EC2ImageExtensionLiveTest extends BaseImageExtensionLiveTest {
 
    public EC2ImageExtensionLiveTest() {

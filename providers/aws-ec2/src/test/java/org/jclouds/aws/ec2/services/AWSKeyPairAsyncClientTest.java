@@ -22,16 +22,13 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
 import org.jclouds.ec2.xml.DescribeKeyPairsResponseHandler;
 import org.jclouds.ec2.xml.KeyPairResponseHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code AWSKeyPairAsyncClient}
@@ -53,7 +50,7 @@ public class AWSKeyPairAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSKeyP
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, KeyPairResponseHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -70,7 +67,7 @@ public class AWSKeyPairAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSKeyP
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, KeyPairResponseHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -86,7 +83,7 @@ public class AWSKeyPairAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSKeyP
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -103,7 +100,7 @@ public class AWSKeyPairAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSKeyP
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeKeyPairsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -120,15 +117,8 @@ public class AWSKeyPairAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSKeyP
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeKeyPairsResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AWSKeyPairAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AWSKeyPairAsyncClient>>() {
-      };
-   }
-
 }

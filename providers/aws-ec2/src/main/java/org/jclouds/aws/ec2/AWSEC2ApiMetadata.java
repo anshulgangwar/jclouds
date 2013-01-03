@@ -18,7 +18,9 @@
  */
 package org.jclouds.aws.ec2;
 
-import static org.jclouds.aws.ec2.reference.AWSEC2Constants.PROPERTY_EC2_GENERATE_INSTANCE_NAMES;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
 
 import java.util.Properties;
@@ -43,19 +45,16 @@ import com.google.inject.Module;
 public class AWSEC2ApiMetadata extends EC2ApiMetadata {
    
    public static final TypeToken<RestContext<AWSEC2Client, AWSEC2AsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<AWSEC2Client, AWSEC2AsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
-   
-   private static Builder builder() {
-      return new Builder();
-   }
 
    @Override
    public Builder toBuilder() {
-      return builder().fromApiMetadata(this);
+      return new Builder().fromApiMetadata(this);
    }
 
    public AWSEC2ApiMetadata() {
-      this(builder());
+      this(new Builder());
    }
 
    protected AWSEC2ApiMetadata(Builder builder) {
@@ -64,16 +63,18 @@ public class AWSEC2ApiMetadata extends EC2ApiMetadata {
    
    public static Properties defaultProperties() {
       Properties properties = EC2ApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(90) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AWSAMIClient.describeImagesInRegion", MINUTES.toMillis(5) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "SpotInstanceClient.describeSpotPriceHistoryInRegion", MINUTES.toMillis(2) + "");
       properties.remove(PROPERTY_EC2_AMI_OWNERS);
       // auth fail sometimes happens in EC2, as the rc.local script that injects the
       // authorized key executes after ssh has started.  
       properties.setProperty("jclouds.ssh.max-retries", "7");
       properties.setProperty("jclouds.ssh.retry-auth", "true");
-      properties.setProperty(PROPERTY_EC2_GENERATE_INSTANCE_NAMES, "true");
       return properties;
    }
 
-   public static class Builder extends EC2ApiMetadata.Builder {
+   public static class Builder extends EC2ApiMetadata.Builder<Builder> {
       protected Builder(){
          super(AWSEC2Client.class, AWSEC2AsyncClient.class);
          id("aws-ec2")
@@ -91,10 +92,8 @@ public class AWSEC2ApiMetadata extends EC2ApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }
-
 }

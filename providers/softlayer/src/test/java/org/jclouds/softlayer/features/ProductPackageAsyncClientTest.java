@@ -21,13 +21,10 @@ package org.jclouds.softlayer.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseJson;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests annotation parsing of {@code ProductPackageAsyncClient}
@@ -49,15 +46,9 @@ public class ProductPackageAsyncClientTest extends BaseSoftLayerAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseJson.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<ProductPackageAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<ProductPackageAsyncClient>>() {
-      };
    }
 }

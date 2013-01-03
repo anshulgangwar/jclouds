@@ -18,6 +18,8 @@
  */
 package org.jclouds.openstack.nova.v2_0;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties.CREDENTIAL_TYPE;
 import static org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties.SERVICE_TYPE;
 import static org.jclouds.openstack.nova.v2_0.config.NovaProperties.AUTO_ALLOCATE_FLOATING_IPS;
@@ -44,13 +46,14 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Module;
 
 /**
- * Implementation of {@link ApiMetadata} for Nova 1.0 API
+ * Implementation of {@link ApiMetadata} for Nova 2.0 API
  * 
  * @author Adrian Cole
  */
 public class NovaApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<NovaApi, NovaAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<NovaApi, NovaAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -68,20 +71,20 @@ public class NovaApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(3) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "ServerApi.create", MINUTES.toMillis(10) + "");
       // auth fail can happen while cloud-init applies keypair updates
       properties.setProperty("jclouds.ssh.max-retries", "7");
       properties.setProperty("jclouds.ssh.retry-auth", "true");
-      
       properties.setProperty(SERVICE_TYPE, ServiceType.COMPUTE);
       properties.setProperty(CREDENTIAL_TYPE, CredentialTypes.PASSWORD_CREDENTIALS);
-      
       properties.setProperty(AUTO_ALLOCATE_FLOATING_IPS, "false");
       properties.setProperty(AUTO_GENERATE_KEYPAIRS, "false");
       properties.setProperty(TIMEOUT_SECURITYGROUP_PRESENT, "500");
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(NovaApi.class, NovaAsyncApi.class);
@@ -109,11 +112,8 @@ public class NovaApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

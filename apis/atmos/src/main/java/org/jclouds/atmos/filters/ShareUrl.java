@@ -18,21 +18,26 @@
  */
 package org.jclouds.atmos.filters;
 
+import static com.google.common.base.Throwables.propagate;
+import static com.google.common.io.BaseEncoding.base64;
+import static com.google.common.io.ByteStreams.readBytes;
 import static org.jclouds.Constants.LOGGER_SIGNATURE;
+import static org.jclouds.crypto.Macs.asByteProcessor;
+import static org.jclouds.http.Uris.uriBuilder;
+import static org.jclouds.util.Strings2.toInputStream;
 
+import java.io.IOException;
 import java.net.URI;
+import java.security.InvalidKeyException;
 
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
 
 import org.jclouds.crypto.Crypto;
-import org.jclouds.crypto.CryptoStreams;
 import org.jclouds.date.TimeStamp;
 import org.jclouds.http.HttpException;
-import org.jclouds.io.InputSuppliers;
 import org.jclouds.location.Provider;
 import org.jclouds.logging.Logger;
 import org.jclouds.rest.annotations.Credential;
@@ -40,6 +45,8 @@ import org.jclouds.rest.annotations.Identity;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.ByteProcessor;
 
 /**
  * Signs the EMC Atmos Online Storage request.
@@ -55,7 +62,6 @@ public class ShareUrl implements Function<String, URI> {
    private final byte[] key;
    private final Supplier<URI> provider;
    private final javax.inject.Provider<Long> timeStampProvider;
-   private final javax.inject.Provider<UriBuilder> uriBuilders;
    private final Crypto crypto;
 
    @Resource
@@ -67,12 +73,10 @@ public class ShareUrl implements Function<String, URI> {
 
    @Inject
    public ShareUrl(@Identity String uid, @Credential String encodedKey,
-            @Provider Supplier<URI> provider, @TimeStamp javax.inject.Provider<Long> timeStampProvider,
-            javax.inject.Provider<UriBuilder> uriBuilders, Crypto crypto) {
+            @Provider Supplier<URI> provider, @TimeStamp javax.inject.Provider<Long> timeStampProvider, Crypto crypto) {
       this.uid = uid;
-      this.key = CryptoStreams.base64(encodedKey);
+      this.key = base64().decode(encodedKey);
       this.provider = provider;
-      this.uriBuilders = uriBuilders;
       this.timeStampProvider = timeStampProvider;
       this.crypto = crypto;
    }
@@ -80,13 +84,14 @@ public class ShareUrl implements Function<String, URI> {
    @Override
    public URI apply(String path) throws HttpException {
       String requestedResource = new StringBuilder().append("/rest/namespace/").append(path).toString();
-      long expires = timeStampProvider.get();
+      String expires = timeStampProvider.get().toString();
       String signature = signString(createStringToSign(requestedResource, expires));
-      return uriBuilders.get().uri(provider.get()).path(requestedResource).queryParam("uid", uid).queryParam("expires",
-               expires).queryParam("signature", signature).build();
+      return uriBuilder(provider.get())
+            .replaceQuery(ImmutableMap.of("uid", uid, "expires", expires, "signature", signature))
+            .appendPath(requestedResource).build();
    }
 
-   public String createStringToSign(String requestedResource, long expires) {
+   public String createStringToSign(String requestedResource, String expires) {
       StringBuilder toSign = new StringBuilder();
       toSign.append("GET\n");
       toSign.append(requestedResource.toLowerCase()).append("\n");
@@ -96,13 +101,14 @@ public class ShareUrl implements Function<String, URI> {
    }
 
    public String signString(String toSign) {
-      String signature;
       try {
-         signature = CryptoStreams.base64(CryptoStreams.mac(InputSuppliers.of(toSign), crypto.hmacSHA1(key)));
-      } catch (Exception e) {
-         throw new HttpException("error signing request", e);
+         ByteProcessor<byte[]> hmacSHA1 = asByteProcessor(crypto.hmacSHA1(key));
+         return base64().encode(readBytes(toInputStream(toSign), hmacSHA1));
+      } catch (InvalidKeyException e) {
+         throw propagate(e);
+      } catch (IOException e) {
+         throw propagate(e);
       }
-      return signature;
    }
 
 }

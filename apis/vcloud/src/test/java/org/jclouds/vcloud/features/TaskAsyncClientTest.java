@@ -22,17 +22,14 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.vcloud.internal.BaseVCloudAsyncClientTest;
 import org.jclouds.vcloud.xml.TaskHandler;
 import org.jclouds.vcloud.xml.TasksListHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code TaskAsyncClient}
@@ -43,12 +40,6 @@ import com.google.inject.TypeLiteral;
 // surefire
 @Test(groups = "unit", testName = "TaskAsyncClientTest")
 public class TaskAsyncClientTest extends BaseVCloudAsyncClientTest<TaskAsyncClient> {
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<TaskAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<TaskAsyncClient>>() {
-      };
-   }
 
    public void testGetTasksList() throws SecurityException, NoSuchMethodException, IOException {
       Method method = TaskAsyncClient.class.getMethod("getTasksList", URI.class);
@@ -61,7 +52,7 @@ public class TaskAsyncClientTest extends BaseVCloudAsyncClientTest<TaskAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TasksListHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -76,7 +67,7 @@ public class TaskAsyncClientTest extends BaseVCloudAsyncClientTest<TaskAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TasksListHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -92,7 +83,7 @@ public class TaskAsyncClientTest extends BaseVCloudAsyncClientTest<TaskAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -108,7 +99,7 @@ public class TaskAsyncClientTest extends BaseVCloudAsyncClientTest<TaskAsyncClie
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }

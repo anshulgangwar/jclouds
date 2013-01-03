@@ -18,26 +18,28 @@
  */
 package org.jclouds.glesys.compute;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.io.BaseEncoding.base16;
 import static org.jclouds.compute.util.ComputeServiceUtils.metadataAndTagsAsCommaDelimitedValue;
 import static org.jclouds.concurrent.FutureIterables.transformParallel;
 
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.jclouds.Constants;
-import org.jclouds.collect.FindResourceInSet;
 import org.jclouds.collect.Memoized;
+import org.jclouds.compute.ComputeService;
 import org.jclouds.compute.ComputeServiceAdapter;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.HardwareBuilder;
@@ -48,7 +50,6 @@ import org.jclouds.compute.domain.internal.VolumeImpl;
 import org.jclouds.compute.predicates.ImagePredicates;
 import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.compute.reference.ComputeServiceConstants.Timeouts;
-import org.jclouds.crypto.CryptoStreams;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.glesys.GleSYSApi;
@@ -64,13 +65,12 @@ import org.jclouds.glesys.options.DestroyServerOptions;
 import org.jclouds.location.predicates.LocationPredicates;
 import org.jclouds.logging.Logger;
 import org.jclouds.predicates.RetryablePredicate;
-import org.jclouds.util.Iterables2;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -92,18 +92,16 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
    private final ExecutorService userThreads;
    private final Timeouts timeouts;
    private final Supplier<Set<? extends Location>> locations;
-   private final Provider<String> passwordProvider;
 
    @Inject
    public GleSYSComputeServiceAdapter(GleSYSApi api, GleSYSAsyncApi aapi,
          @Named(Constants.PROPERTY_USER_THREADS) ExecutorService userThreads, Timeouts timeouts,
-         @Memoized Supplier<Set<? extends Location>> locations, @Named("PASSWORD") Provider<String> passwordProvider) {
+         @Memoized Supplier<Set<? extends Location>> locations) {
       this.api = checkNotNull(api, "api");
       this.aapi = checkNotNull(aapi, "aapi");
       this.userThreads = checkNotNull(userThreads, "userThreads");
       this.timeouts = checkNotNull(timeouts, "timeouts");
       this.locations = checkNotNull(locations, "locations");
-      this.passwordProvider = checkNotNull(passwordProvider, "passwordProvider");
    }
 
    @Override
@@ -123,9 +121,8 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
       if (md.size() > 0) {
          String description = Joiner.on('\n').withKeyValueSeparator("=").join(md);
          // TODO: get glesys to stop stripping out equals and commas!
-         createServerOptions.description(CryptoStreams.hex(description.getBytes(Charsets.UTF_8)));
+         createServerOptions.description(base16().lowerCase().encode(description.getBytes(UTF_8)));
       }
-
       ServerSpec.Builder<?> builder = ServerSpec.builder();
       builder.datacenter(template.getLocation().getId());
       builder.templateName(template.getImage().getId());
@@ -133,11 +130,12 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
       builder.memorySizeMB(template.getHardware().getRam());
       builder.diskSizeGB(Math.round(template.getHardware().getVolumes().get(0).getSize()));
       builder.cpuCores((int) template.getHardware().getProcessors().get(0).getCores());
-      builder.transferGB(50);// TODO: add to template options with default value
+      builder.transferGB(templateOptions.getTransferGB());
       ServerSpec spec = builder.build();
 
-      String password = passwordProvider.get(); // TODO: add to templateOptions
-                                                // and set if present
+      
+      // use random root password unless one was provided via template options
+      String password = templateOptions.hasRootPassword() ? templateOptions.getRootPassword() : getRandomPassword();
 
       logger.debug(">> creating new Server spec(%s) name(%s) options(%s)", spec, name, createServerOptions);
       ServerDetails result = api.getServerApi().createWithHostnameAndRootPassword(spec, name, password,
@@ -148,18 +146,11 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
             .password(password).build());
    }
 
-   @Singleton
-   public static class FindLocationForServerSpec extends FindResourceInSet<ServerSpec, Location> {
-
-      @Inject
-      public FindLocationForServerSpec(@Memoized Supplier<Set<? extends Location>> location) {
-         super(location);
-      }
-
-      @Override
-      public boolean matches(ServerSpec from, Location input) {
-         return input.getId().equals(from.getDatacenter());
-      }
+   /**
+    * @return a generated random password string
+    */
+   private String getRandomPassword() {
+      return UUID.randomUUID().toString().replace("-","");
    }
 
    @Override
@@ -173,9 +164,9 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
       for (Entry<String, AllowedArgumentsForCreateServer> platformToArgs : api.getServerApi()
             .getAllowedArgumentsForCreateByPlatform().entrySet())
          for (String datacenter : platformToArgs.getValue().getDataCenters())
-            for (int diskSizeGB : platformToArgs.getValue().getDiskSizesInGB())
-               for (int cpuCores : platformToArgs.getValue().getCpuCoreOptions())
-                  for (int memorySizeMB : platformToArgs.getValue().getMemorySizesInMB()) {
+            for (int diskSizeGB : platformToArgs.getValue().getDiskSizesInGB().getAllowedUnits())
+               for (int cpuCores : platformToArgs.getValue().getCpuCoreOptions().getAllowedUnits())
+                  for (int memorySizeMB : platformToArgs.getValue().getMemorySizesInMB().getAllowedUnits()) {
                      ImmutableSet.Builder<String> templatesSupportedBuilder = ImmutableSet.builder();
                      for (OSTemplate template : images) {
                         if (template.getPlatform().equals(platformToArgs.getKey())
@@ -200,7 +191,7 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
 
    @Override
    public Set<OSTemplate> listImages() {
-      return api.getServerApi().listTemplates().toImmutableSet();
+      return api.getServerApi().listTemplates().toSet();
    }
    
    // cheat until we have a getTemplate command
@@ -218,27 +209,24 @@ public class GleSYSComputeServiceAdapter implements ComputeServiceAdapter<Server
    
    @Override
    public Iterable<ServerDetails> listNodes() {
-      return Iterables2.concreteCopy(transformParallel(api.getServerApi().list(), new Function<Server, Future<? extends ServerDetails>>() {
+      return transformParallel(api.getServerApi().list(), new Function<Server, Future<? extends ServerDetails>>() {
          @Override
          public Future<ServerDetails> apply(Server from) {
             return aapi.getServerApi().get(from.getId());
          }
 
-      }, userThreads, null, logger, "server details"));
+      }, userThreads, null, logger, "server details");
    }
 
    @Override
    public Set<String> listLocations() {
-      return ImmutableSet.copyOf(Iterables.concat(Iterables.transform(api.getServerApi()
-            .getAllowedArgumentsForCreateByPlatform().values(),
-            new Function<AllowedArgumentsForCreateServer, Set<String>>() {
-
+      return FluentIterable.from(api.getServerApi().getAllowedArgumentsForCreateByPlatform().values())
+            .transformAndConcat(new Function<AllowedArgumentsForCreateServer, Set<String>>() {
                @Override
                public Set<String> apply(AllowedArgumentsForCreateServer arg0) {
                   return arg0.getDataCenters();
                }
-
-            })));
+            }).toSet();
    }
 
    @Override

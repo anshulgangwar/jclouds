@@ -21,6 +21,7 @@ package org.jclouds.gogrid.services;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.gogrid.domain.ServerImageState;
 import org.jclouds.gogrid.domain.ServerImageType;
 import org.jclouds.gogrid.functions.ParseImageFromJsonResponse;
@@ -28,12 +29,9 @@ import org.jclouds.gogrid.functions.ParseImageListFromJsonResponse;
 import org.jclouds.gogrid.options.GetImageListOptions;
 import org.jclouds.gogrid.options.SaveImageOptions;
 import org.jclouds.http.HttpRequest;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code GridImageAsyncClient}
@@ -60,7 +58,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageListFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(httpRequest);
       httpRequest = Iterables.getOnlyElement(httpRequest.getFilters()).filter(httpRequest);
@@ -84,7 +82,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageListFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(httpRequest);
       httpRequest = Iterables.getOnlyElement(httpRequest.getFilters()).filter(httpRequest);
@@ -107,7 +105,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(httpRequest);
       httpRequest = Iterables.getOnlyElement(httpRequest.getFilters()).filter(httpRequest);
@@ -130,7 +128,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(httpRequest);
       httpRequest = Iterables.getOnlyElement(httpRequest.getFilters()).filter(httpRequest);
@@ -153,7 +151,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
    }
 
    @Test
@@ -169,7 +167,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
    }
 
@@ -188,14 +186,7 @@ public class GridImageAsyncClientTest extends BaseGoGridAsyncClientTest<GridImag
 
       assertResponseParserClassEquals(method, httpRequest, ParseImageFromJsonResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<GridImageAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<GridImageAsyncClient>>() {
-      };
-   }
-
 }

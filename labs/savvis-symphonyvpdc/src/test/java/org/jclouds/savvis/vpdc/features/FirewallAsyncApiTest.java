@@ -21,16 +21,13 @@ package org.jclouds.savvis.vpdc.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.savvis.vpdc.domain.FirewallRule;
 import org.jclouds.savvis.vpdc.xml.TaskHandler;
 import org.jclouds.util.Strings2;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests annotation parsing of {@code FirewallAsyncApi}
@@ -74,15 +71,8 @@ public class FirewallAsyncApiTest extends BaseVPDCAsyncApiTest<FirewallAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<FirewallAsyncApi>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<FirewallAsyncApi>>() {
-      };
-   }
-
 }

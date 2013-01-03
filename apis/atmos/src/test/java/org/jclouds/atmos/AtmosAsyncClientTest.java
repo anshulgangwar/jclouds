@@ -25,38 +25,36 @@ import java.lang.reflect.Method;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.jclouds.Fallbacks.FalseOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.atmos.blobstore.functions.BlobToObject;
 import org.jclouds.atmos.config.AtmosRestClientModule;
 import org.jclouds.atmos.domain.AtmosObject;
+import org.jclouds.atmos.fallbacks.EndpointIfAlreadyExists;
 import org.jclouds.atmos.filters.SignRequest;
 import org.jclouds.atmos.functions.ParseDirectoryListFromContentAndHeaders;
 import org.jclouds.atmos.functions.ParseObjectFromHeadersAndHttpContent;
 import org.jclouds.atmos.functions.ParseSystemMetadataFromHeaders;
-import org.jclouds.atmos.functions.ReturnEndpointIfAlreadyExists;
 import org.jclouds.atmos.functions.ReturnTrueIfGroupACLIsOtherRead;
 import org.jclouds.atmos.options.ListOptions;
 import org.jclouds.atmos.options.PutOptions;
+import org.jclouds.blobstore.BlobStoreFallbacks.ThrowContainerNotFoundOn404;
+import org.jclouds.blobstore.BlobStoreFallbacks.ThrowKeyNotFoundOn404;
 import org.jclouds.blobstore.binders.BindBlobToMultipartFormTest;
-import org.jclouds.blobstore.functions.ThrowContainerNotFoundOn404;
-import org.jclouds.blobstore.functions.ThrowKeyNotFoundOn404;
 import org.jclouds.date.TimeStamp;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseURIFromListOrLocationHeaderIf20x;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
 import org.jclouds.http.options.GetOptions;
 import org.jclouds.rest.ConfiguresRestClient;
-import org.jclouds.rest.functions.ReturnFalseOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
 import org.jclouds.rest.internal.BaseAsyncClientTest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Supplier;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code AtmosAsyncClient}
@@ -79,7 +77,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseDirectoryListFromContentAndHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -94,7 +92,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseDirectoryListFromContentAndHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ThrowContainerNotFoundOn404.class);
+      assertFallbackClassEquals(method, ThrowContainerNotFoundOn404.class);
 
       checkFilters(request);
    }
@@ -109,7 +107,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseDirectoryListFromContentAndHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -124,7 +122,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseDirectoryListFromContentAndHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ThrowContainerNotFoundOn404.class);
+      assertFallbackClassEquals(method, ThrowContainerNotFoundOn404.class);
 
       checkFilters(request);
    }
@@ -139,7 +137,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseURIFromListOrLocationHeaderIf20x.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEndpointIfAlreadyExists.class);
+      assertFallbackClassEquals(method, EndpointIfAlreadyExists.class);
 
       checkFilters(request);
    }
@@ -155,7 +153,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseURIFromListOrLocationHeaderIf20x.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEndpointIfAlreadyExists.class);
+      assertFallbackClassEquals(method, EndpointIfAlreadyExists.class);
 
       checkFilters(request);
    }
@@ -172,7 +170,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseURIFromListOrLocationHeaderIf20x.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -190,7 +188,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseURIFromListOrLocationHeaderIf20x.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -207,7 +205,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ThrowKeyNotFoundOn404.class);
+      assertFallbackClassEquals(method, ThrowKeyNotFoundOn404.class);
 
       checkFilters(request);
    }
@@ -225,7 +223,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ThrowKeyNotFoundOn404.class);
+      assertFallbackClassEquals(method, ThrowKeyNotFoundOn404.class);
 
       checkFilters(request);
    }
@@ -240,7 +238,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseObjectFromHeadersAndHttpContent.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -255,7 +253,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ParseSystemMetadataFromHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -270,7 +268,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -285,7 +283,7 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
 
       assertResponseParserClassEquals(method, request, ReturnTrueIfGroupACLIsOtherRead.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnFalseOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, FalseOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -299,12 +297,6 @@ public class AtmosAsyncClientTest extends BaseAsyncClientTest<AtmosAsyncClient> 
    protected void checkFilters(HttpRequest request) {
       assertEquals(request.getFilters().size(), 1);
       assertEquals(request.getFilters().get(0).getClass(), SignRequest.class);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AtmosAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AtmosAsyncClient>>() {
-      };
    }
 
    @BeforeClass

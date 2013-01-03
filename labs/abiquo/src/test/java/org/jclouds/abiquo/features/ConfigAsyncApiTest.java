@@ -24,14 +24,13 @@ import static org.jclouds.abiquo.domain.DomainUtils.withHeader;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.abiquo.domain.ConfigResources;
 import org.jclouds.abiquo.domain.config.options.LicenseOptions;
 import org.jclouds.abiquo.domain.config.options.PropertyOptions;
 import org.jclouds.http.functions.ParseXMLWithJAXB;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
 import org.jclouds.rest.internal.GeneratedHttpRequest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.abiquo.server.core.appslibrary.CategoriesDto;
@@ -42,7 +41,6 @@ import com.abiquo.server.core.config.SystemPropertiesDto;
 import com.abiquo.server.core.config.SystemPropertyDto;
 import com.abiquo.server.core.enterprise.PrivilegeDto;
 import com.abiquo.server.core.enterprise.PrivilegesDto;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests annotation parsing of {@code AdminAsyncApi}.
@@ -64,7 +62,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -79,7 +77,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -95,7 +93,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -110,7 +108,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -127,7 +125,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -142,7 +140,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -159,7 +157,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -175,7 +173,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -191,7 +189,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -208,7 +206,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -223,7 +221,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -239,7 +237,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -255,7 +253,7 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ParseXMLWithJAXB.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -270,14 +268,8 @@ public class ConfigAsyncApiTest extends BaseAbiquoAsyncApiTest<ConfigAsyncApi> {
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<ConfigAsyncApi>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<ConfigAsyncApi>>() {
-      };
    }
 }

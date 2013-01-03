@@ -18,20 +18,20 @@
  */
 package org.jclouds.cloudstack.ec2.internal;
 
-import org.jclouds.cloudstack.ec2.CloudStackEC2Client;
-import org.jclouds.cloudstack.ec2.config.CloudStackEC2RestClientModule;
-import org.jclouds.date.DateService;
-import org.jclouds.rest.ConfiguresRestClient;
-import org.jclouds.rest.internal.BaseRestClientExpectTest;
 
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import org.jclouds.cloudstack.ec2.config.CloudStackEC2RestClientModule;
+import org.jclouds.date.DateService;
+import org.jclouds.ec2.EC2Client;
+import org.jclouds.rest.ConfiguresRestClient;
+import org.jclouds.rest.internal.BaseRestClientExpectTest;
 
 /**
  * 
  * @author Adrian Cole
  */
-public abstract class BaseCloudStackEC2RestClientExpectTest extends BaseRestClientExpectTest<CloudStackEC2Client> {
+public abstract class BaseCloudStackEC2RestClientExpectTest extends BaseRestClientExpectTest<EC2Client> {
    protected static final String CONSTANT_DATE = "2012-04-16T15:54:08.897Z";
 
    public BaseCloudStackEC2RestClientExpectTest() {

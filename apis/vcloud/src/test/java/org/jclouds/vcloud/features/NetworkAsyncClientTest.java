@@ -22,15 +22,12 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.vcloud.internal.BaseVCloudAsyncClientTest;
 import org.jclouds.vcloud.xml.OrgNetworkHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code NetworkAsyncClient}
@@ -41,12 +38,6 @@ import com.google.inject.TypeLiteral;
 // surefire
 @Test(groups = "unit", testName = "NetworkAsyncClientTest")
 public class NetworkAsyncClientTest extends BaseVCloudAsyncClientTest<NetworkAsyncClient> {
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<NetworkAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<NetworkAsyncClient>>() {
-      };
-   }
 
    public void testNetwork() throws SecurityException, NoSuchMethodException, IOException {
       Method method = NetworkAsyncClient.class.getMethod("getNetwork", URI.class);
@@ -59,7 +50,7 @@ public class NetworkAsyncClientTest extends BaseVCloudAsyncClientTest<NetworkAsy
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgNetworkHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -75,7 +66,7 @@ public class NetworkAsyncClientTest extends BaseVCloudAsyncClientTest<NetworkAsy
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgNetworkHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }

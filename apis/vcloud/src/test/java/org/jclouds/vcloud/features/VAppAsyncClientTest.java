@@ -22,20 +22,17 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.util.Strings2;
 import org.jclouds.vcloud.internal.BaseVCloudAsyncClientTest;
 import org.jclouds.vcloud.options.CloneVAppOptions;
 import org.jclouds.vcloud.xml.TaskHandler;
 import org.jclouds.vcloud.xml.VAppHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code VAppAsyncClient}
@@ -46,12 +43,6 @@ import com.google.inject.TypeLiteral;
 // surefire
 @Test(groups = "unit", testName = "VAppAsyncClientTest")
 public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClient> {
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<VAppAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<VAppAsyncClient>>() {
-      };
-   }
 
    public void testopyVAppToVDCAndName() throws SecurityException, NoSuchMethodException, IOException {
       Method method = VAppAsyncClient.class.getMethod("copyVAppToVDCAndName", URI.class, URI.class, String.class,
@@ -68,7 +59,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -89,7 +80,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -110,7 +101,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -127,7 +118,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -144,7 +135,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -160,7 +151,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VAppHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -177,7 +168,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -195,7 +186,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -214,7 +205,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -230,7 +221,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -247,7 +238,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -264,7 +255,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -281,7 +272,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -298,7 +289,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -315,7 +306,7 @@ public class VAppAsyncClientTest extends BaseVCloudAsyncClientTest<VAppAsyncClie
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }

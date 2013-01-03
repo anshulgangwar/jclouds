@@ -34,6 +34,7 @@ import java.util.Properties;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
 import static org.jclouds.Constants.PROPERTY_SO_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 
 /**
  * Implementation of {@link ApiMetadata} for the CloudStack's EC2-clone API
@@ -42,8 +43,9 @@ import static org.jclouds.Constants.PROPERTY_SO_TIMEOUT;
  */
 public class CloudStackEC2ApiMetadata extends EC2ApiMetadata {
 
-   public static final TypeToken<RestContext<CloudStackEC2Client, CloudStackEC2AsyncClient>> CONTEXT_TOKEN = new
-           TypeToken<RestContext<CloudStackEC2Client, CloudStackEC2AsyncClient>>() {
+   public static final TypeToken<RestContext<org.jclouds.ec2.EC2Client, org.jclouds.ec2.EC2AsyncClient>>
+           CONTEXT_TOKEN = new
+           TypeToken<RestContext<org.jclouds.ec2.EC2Client, org.jclouds.ec2.EC2AsyncClient>>() {
            };
 
    private static Builder builder() {
@@ -66,16 +68,19 @@ public class CloudStackEC2ApiMetadata extends EC2ApiMetadata {
    public static Properties defaultProperties() {
       Properties properties = EC2ApiMetadata.defaultProperties();
 
-      //increasing these timeout as first instance creation takes lot of time in CloudStack
+      //increasing these timeout as first instance and Image creation takes lot of time in CloudStack
       properties.setProperty(PROPERTY_CONNECTION_TIMEOUT, MINUTES.toMillis(10) + "");
       properties.setProperty(PROPERTY_SO_TIMEOUT, MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AmiClient.createImageInRegion", MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "InstanceClient.runInstancesInRegion",
+              MINUTES.toMillis(10) + "");
 
       return properties;
    }
 
    public static class Builder extends EC2ApiMetadata.Builder {
       protected Builder() {
-         super(CloudStackEC2Client.class, CloudStackEC2AsyncClient.class);
+         super(org.jclouds.ec2.EC2Client.class, org.jclouds.ec2.EC2AsyncClient.class);
          id("cloudstack-ec2")
                  .name("CloudBridge (EC2 clone) API")
                  .version("2012-08-15")

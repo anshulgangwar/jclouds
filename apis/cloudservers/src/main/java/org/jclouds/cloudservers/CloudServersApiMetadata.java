@@ -18,6 +18,10 @@
  */
 package org.jclouds.cloudservers;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -40,6 +44,7 @@ import com.google.inject.Module;
 public class CloudServersApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<CloudServersClient, CloudServersAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<CloudServersClient, CloudServersAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -57,10 +62,12 @@ public class CloudServersApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(1) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "OpenStackAuthClient.authenticate", SECONDS.toMillis(30) + "");
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(CloudServersClient.class, CloudServersAsyncClient.class);
@@ -82,11 +89,8 @@ public class CloudServersApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

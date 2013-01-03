@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
 import org.jclouds.ec2.options.CreateImageOptions;
 import org.jclouds.ec2.options.DescribeImagesOptions;
 import org.jclouds.ec2.options.RegisterImageBackedByEbsOptions;
@@ -35,12 +36,9 @@ import org.jclouds.ec2.xml.PermissionHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code AMIAsyncClient}
@@ -62,7 +60,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
                "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -82,7 +80,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -99,12 +97,12 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
       filter.filter(request);
       assertPayloadEquals(
                request,
-               "Action=DescribeImages&Signature=qE4vexSFJqS0UWK%2BccV3s%2BP9woL3M5HI5bTBoM7s%2FLY%3D&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2009-11-08T15%3A54%3A08.897Z&Version=2010-06-15&AWSAccessKeyId=identity",
+               "Action=DescribeImages&Signature=qE4vexSFJqS0UWK%2BccV3s%2BP9woL3M5HI5bTBoM7s/LY%3D&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2009-11-08T15%3A54%3A08.897Z&Version=2010-06-15&AWSAccessKeyId=identity",
                "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeImagesResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -124,7 +122,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeImagesResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -140,7 +138,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -156,7 +154,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
                "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -176,7 +174,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -190,11 +188,11 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
                request,
-               "Action=RegisterImage&RootDeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.DeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName",
+               "Action=RegisterImage&RootDeviceName=/dev/sda1&BlockDeviceMapping.0.DeviceName=/dev/sda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName",
                "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -210,12 +208,12 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
                request,
-               "Action=RegisterImage&RootDeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.DeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName&Description=description&BlockDeviceMapping.1.Ebs.DeleteOnTermination=false&BlockDeviceMapping.1.DeviceName=%2Fdev%2Fdevice&BlockDeviceMapping.1.Ebs.SnapshotId=snapshot&BlockDeviceMapping.2.Ebs.DeleteOnTermination=false&BlockDeviceMapping.2.DeviceName=%2Fdev%2Fnewdevice&BlockDeviceMapping.2.VirtualName=newblock&BlockDeviceMapping.2.Ebs.VolumeSize=100",
+               "Action=RegisterImage&RootDeviceName=/dev/sda1&BlockDeviceMapping.0.DeviceName=/dev/sda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName&Description=description&BlockDeviceMapping.1.Ebs.DeleteOnTermination=false&BlockDeviceMapping.1.DeviceName=/dev/device&BlockDeviceMapping.1.Ebs.SnapshotId=snapshot&BlockDeviceMapping.2.Ebs.DeleteOnTermination=false&BlockDeviceMapping.2.DeviceName=/dev/newdevice&BlockDeviceMapping.2.VirtualName=newblock&BlockDeviceMapping.2.Ebs.VolumeSize=100",
                "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -233,7 +231,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, BlockDeviceMappingHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -250,7 +248,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, PermissionHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -275,7 +273,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -294,7 +292,7 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
                "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -311,15 +309,8 @@ public class AMIAsyncClientTest extends BaseEC2AsyncClientTest<AMIAsyncClient> {
                "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AMIAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AMIAsyncClient>>() {
-      };
-   }
-
 }

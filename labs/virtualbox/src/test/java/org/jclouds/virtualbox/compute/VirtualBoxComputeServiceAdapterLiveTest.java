@@ -35,9 +35,9 @@ import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ssh.SshClient;
 import org.jclouds.virtualbox.BaseVirtualBoxClientLiveTest;
 import org.jclouds.virtualbox.functions.IMachineToSshClient;
-import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
 import org.testng.annotations.Test;
-import org.virtualbox_4_1.IMachine;
+import org.virtualbox_4_2.IMachine;
 
 import com.google.common.collect.Iterables;
 
@@ -61,7 +61,7 @@ public class VirtualBoxComputeServiceAdapterLiveTest extends BaseVirtualBoxClien
       doConnectViaSsh(machine.getNode(), prioritizeCredentialsFromTemplate.apply(template, machine.getCredentials()));
    }
 
-   protected void doConnectViaSsh(IMachine machine, LoginCredentials creds) {      
+   protected void doConnectViaSsh(IMachine machine, LoginCredentials creds) {
       SshClient ssh = view.utils().injector().getInstance(IMachineToSshClient.class).apply(machine);
       try {
          ssh.connect();
@@ -88,11 +88,11 @@ public class VirtualBoxComputeServiceAdapterLiveTest extends BaseVirtualBoxClien
       assertFalse(Iterables.isEmpty(iMageIterable));
    }
 
-   @AfterClass
+   @AfterGroups(groups = "live")
    @Override
-   protected void tearDown() throws Exception {
+   protected void tearDownContext() {
       if (machine != null)
          adapter.destroyNode(machine.getNodeId() + "");
-      super.tearDown();
+      super.tearDownContext();
    }
 }

@@ -30,7 +30,9 @@ import org.jclouds.rest.internal.BaseRestApiMetadata;
 import java.net.URI;
 import java.util.Properties;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.jclouds.Constants.PROPERTY_SESSION_INTERVAL;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.oauth.v2.config.OAuthProperties.SIGNATURE_OR_MAC_ALGORITHM;
 
 /**
@@ -40,8 +42,9 @@ import static org.jclouds.oauth.v2.config.OAuthProperties.SIGNATURE_OR_MAC_ALGOR
  */
 public class OAuthApiMetadata extends BaseRestApiMetadata {
 
-   public static final TypeToken<RestContext<OAuthApi, OAuthAsyncApi>> CONTEXT_TOKEN = new
-           TypeToken<RestContext<OAuthApi, OAuthAsyncApi>>() {};
+   public static final TypeToken<RestContext<OAuthApi, OAuthAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<OAuthApi, OAuthAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
+   };
 
    @Override
    public Builder toBuilder() {
@@ -58,12 +61,13 @@ public class OAuthApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(1) + "");
       properties.put(SIGNATURE_OR_MAC_ALGORITHM, "RS256");
       properties.put(PROPERTY_SESSION_INTERVAL, 3600);
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(OAuthApi.class, OAuthAsyncApi.class);
@@ -83,11 +87,8 @@ public class OAuthApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

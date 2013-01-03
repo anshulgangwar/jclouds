@@ -18,12 +18,13 @@
  */
 package org.jclouds.cloudstack.features;
 
-import static org.jclouds.crypto.CryptoStreams.md5Hex;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.hash.Hashing.md5;
+import static com.google.common.io.BaseEncoding.base16;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 
 import org.jclouds.cloudstack.CloudStackContext;
 import org.jclouds.cloudstack.domain.Account;
@@ -43,18 +44,17 @@ import com.google.common.collect.ImmutableMultimap;
 @Test(groups = "live", singleThreaded = true, testName = "SessionClientExpectTest")
 public class SessionClientExpectTest extends BaseCloudStackExpectTest<SessionClient> {
 
-   @SuppressWarnings("deprecation")
    public void testLoginWhenResponseIs2xxIncludesJSessionId() throws IOException {
       String domain = "Partners/jCloud";
       String user = "jcloud";
       String password = "jcl0ud";
-      String md5password = md5Hex(password);
+      String md5password = base16().lowerCase().encode(md5().hashString(password, UTF_8).asBytes());
 
       HttpRequest request = HttpRequest.builder()
          .method("GET")
          .endpoint(
             URI.create("http://localhost:8080/client/api?response=json&command=login&" +
-               "username=" + user + "&password=" + md5password + "&domain=" + URLEncoder.encode(domain)))
+               "username=" + user + "&password=" + md5password + "&domain=" + domain))
          .addHeader("Accept", "application/json")
          .build();
 

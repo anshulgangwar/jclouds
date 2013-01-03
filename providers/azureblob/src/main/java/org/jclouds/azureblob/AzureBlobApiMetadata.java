@@ -18,6 +18,8 @@
  */
 package org.jclouds.azureblob;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.blobstore.reference.BlobStoreConstants.PROPERTY_USER_METADATA_PREFIX;
 
 import java.net.URI;
@@ -42,6 +44,7 @@ import com.google.inject.Module;
 public class AzureBlobApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<AzureBlobClient, AzureBlobAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<AzureBlobClient, AzureBlobAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
    
    private static Builder builder() {
@@ -63,11 +66,15 @@ public class AzureBlobApiMetadata extends BaseRestApiMetadata {
   
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(2) + "");
+      // 10 minutes per MB * max size of 64M
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AzureBlobClient.putBlob", MINUTES.toMillis(10 * 64) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AzureBlobClient.getBlob", MINUTES.toMillis(10 * 64) + "");
       properties.setProperty(PROPERTY_USER_METADATA_PREFIX, "x-ms-meta-");
       return properties;
    }
    
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
       protected Builder(){
          super(AzureBlobClient.class, AzureBlobAsyncClient.class);
          id("azureblob")
@@ -88,10 +95,8 @@ public class AzureBlobApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }
-
 }

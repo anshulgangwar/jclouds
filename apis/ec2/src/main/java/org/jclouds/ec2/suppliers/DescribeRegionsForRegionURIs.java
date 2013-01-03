@@ -18,20 +18,18 @@
  */
 package org.jclouds.ec2.suppliers;
 
-import java.net.URI;
-import java.util.Map;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
+import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
 import org.jclouds.ec2.EC2Client;
 import org.jclouds.ec2.services.AvailabilityZoneAndRegionClient;
 import org.jclouds.location.Region;
 import org.jclouds.location.suppliers.RegionIdToURISupplier;
 import org.jclouds.util.Suppliers2;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.net.URI;
+import java.util.Map;
 
 @Singleton
 public class DescribeRegionsForRegionURIs implements RegionIdToURISupplier {
@@ -47,6 +45,6 @@ public class DescribeRegionsForRegionURIs implements RegionIdToURISupplier {
    @Override
    public Map<String, Supplier<URI>> get() {
       Map<String, URI> regionToUris = client.describeRegions();
-      return Maps.transformValues(regionToUris, Suppliers2.<URI> ofInstanceFunction());
+     return Maps.transformValues(regionToUris, Suppliers2.<URI>ofInstanceFunction());
    }
 }

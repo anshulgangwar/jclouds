@@ -18,6 +18,9 @@
  */
 package org.jclouds.joyent.cloudapi.v6_5;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -42,6 +45,7 @@ import com.google.inject.Module;
 public class JoyentCloudApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<JoyentCloudApi, JoyentCloudAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<JoyentCloudApi, JoyentCloudAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -59,6 +63,7 @@ public class JoyentCloudApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(30) + "");
       // auth fail sometimes happens, as the rc.local script that injects the
       // authorized key executes after ssh has started.  
       properties.setProperty("jclouds.ssh.max-retries", "7");
@@ -67,7 +72,7 @@ public class JoyentCloudApiMetadata extends BaseRestApiMetadata {
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(JoyentCloudApi.class, JoyentCloudAsyncApi.class);
@@ -89,11 +94,8 @@ public class JoyentCloudApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

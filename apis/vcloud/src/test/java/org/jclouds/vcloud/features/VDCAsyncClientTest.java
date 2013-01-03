@@ -23,15 +23,12 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.NoSuchElementException;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.vcloud.internal.BaseVCloudAsyncClientTest;
 import org.jclouds.vcloud.xml.VDCHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code VDCAsyncClient}
@@ -42,12 +39,6 @@ import com.google.inject.TypeLiteral;
 // surefire
 @Test(groups = "unit", testName = "VDCAsyncClientTest")
 public class VDCAsyncClientTest extends BaseVCloudAsyncClientTest<VDCAsyncClient> {
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<VDCAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<VDCAsyncClient>>() {
-      };
-   }
 
    @Test(expectedExceptions = NoSuchElementException.class)
    public void testFindVDCInOrgNamedBadVDC() throws SecurityException, NoSuchMethodException, IOException {
@@ -71,7 +62,7 @@ public class VDCAsyncClientTest extends BaseVCloudAsyncClientTest<VDCAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VDCHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -86,7 +77,7 @@ public class VDCAsyncClientTest extends BaseVCloudAsyncClientTest<VDCAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VDCHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -102,7 +93,7 @@ public class VDCAsyncClientTest extends BaseVCloudAsyncClientTest<VDCAsyncClient
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VDCHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }

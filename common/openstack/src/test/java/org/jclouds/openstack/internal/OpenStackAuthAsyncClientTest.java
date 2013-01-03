@@ -22,18 +22,14 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 import org.jclouds.apis.ApiMetadata;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.IntegrationTestAsyncClient;
 import org.jclouds.http.IntegrationTestClient;
 import org.jclouds.openstack.functions.ParseAuthenticationResponseFromHeaders;
-import org.jclouds.openstack.internal.OpenStackAuthAsyncClient;
 import org.jclouds.rest.AnonymousRestApiMetadata;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
 import org.jclouds.rest.internal.BaseAsyncClientTest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code OpenStackAuthAsyncClient}
@@ -54,7 +50,7 @@ public class OpenStackAuthAsyncClientTest extends BaseAsyncClientTest<OpenStackA
 
       assertResponseParserClassEquals(method, httpRequest, ParseAuthenticationResponseFromHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
    }
 
@@ -68,7 +64,7 @@ public class OpenStackAuthAsyncClientTest extends BaseAsyncClientTest<OpenStackA
 
       assertResponseParserClassEquals(method, httpRequest, ParseAuthenticationResponseFromHeaders.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
    }
 
@@ -81,11 +77,4 @@ public class OpenStackAuthAsyncClientTest extends BaseAsyncClientTest<OpenStackA
    @Override
    protected void checkFilters(HttpRequest request) {
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<OpenStackAuthAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<OpenStackAuthAsyncClient>>() {
-      };
-   }
-
 }

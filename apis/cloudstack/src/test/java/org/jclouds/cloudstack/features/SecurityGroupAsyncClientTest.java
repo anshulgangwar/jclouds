@@ -21,25 +21,23 @@ package org.jclouds.cloudstack.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.cloudstack.options.AccountInDomainOptions;
 import org.jclouds.cloudstack.options.ListSecurityGroupsOptions;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.functions.IdentityFunction;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code SecurityGroupAsyncClient}
@@ -62,7 +60,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -81,7 +79,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -99,7 +97,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -116,7 +114,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -130,13 +128,13 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertRequestLineEquals(
             httpRequest,
-            "GET http://localhost:8080/client/api?response=json&command=authorizeSecurityGroupIngress&securitygroupid=2&startport=22&protocol=tcp&endport=22&cidrlist=1.1.1.1%2F24%2C1.2.2.2%2F16 HTTP/1.1");
+            "GET http://localhost:8080/client/api?response=json&command=authorizeSecurityGroupIngress&securitygroupid=2&startport=22&protocol=tcp&endport=22&cidrlist=1.1.1.1/24,1.2.2.2/16 HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -156,7 +154,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -169,13 +167,13 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertRequestLineEquals(
             httpRequest,
-            "GET http://localhost:8080/client/api?response=json&command=authorizeSecurityGroupIngress&protocol=ICMP&securitygroupid=2&icmptype=22&icmpcode=22&cidrlist=1.1.1.1%2F24%2C1.2.2.2%2F16 HTTP/1.1");
+            "GET http://localhost:8080/client/api?response=json&command=authorizeSecurityGroupIngress&protocol=ICMP&securitygroupid=2&icmptype=22&icmpcode=22&cidrlist=1.1.1.1/24,1.2.2.2/16 HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -195,7 +193,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
 
@@ -215,7 +213,7 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -232,15 +230,9 @@ public class SecurityGroupAsyncClientTest extends BaseCloudStackAsyncClientTest<
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<SecurityGroupAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<SecurityGroupAsyncClient>>() {
-      };
    }
 }

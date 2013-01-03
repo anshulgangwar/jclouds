@@ -20,6 +20,9 @@ package org.jclouds.cloudstack.features;
 
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
+import org.jclouds.Fallbacks.VoidOnNotFoundOr404;
 import org.jclouds.cloudstack.domain.Snapshot;
 import org.jclouds.cloudstack.domain.SnapshotPolicySchedule;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
@@ -27,21 +30,16 @@ import org.jclouds.cloudstack.options.CreateSnapshotOptions;
 import org.jclouds.cloudstack.options.ListSnapshotPoliciesOptions;
 import org.jclouds.cloudstack.options.ListSnapshotsOptions;
 import org.jclouds.cloudstack.util.SnapshotPolicySchedules;
+import org.jclouds.fallbacks.MapHttp4xxCodesToExceptions;
 import org.jclouds.functions.IdentityFunction;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
 import org.jclouds.http.functions.UnwrapOnlyJsonValue;
-import org.jclouds.rest.functions.MapHttp4xxCodesToExceptions;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.functions.ReturnVoidOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests the behaviour of SnapshotAsyncClient.
@@ -65,7 +63,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -81,7 +79,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -97,7 +95,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -114,7 +112,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
       assertResponseParserClassEquals(method, httpRequest,
             Functions.compose(IdentityFunction.INSTANCE, IdentityFunction.INSTANCE).getClass());
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -130,7 +128,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -146,7 +144,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -162,7 +160,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, MapHttp4xxCodesToExceptions.class);
+      assertFallbackClassEquals(method, MapHttp4xxCodesToExceptions.class);
 
       checkFilters(httpRequest);
    }
@@ -178,7 +176,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -189,13 +187,13 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
       HttpRequest httpRequest = processor.createRequest(method, ids);
 
       assertRequestLineEquals(httpRequest,
-            "GET http://localhost:8080/client/api?response=json&command=deleteSnapshotPolicies&ids=3%2C5%2C7 HTTP/1.1");
+            "GET http://localhost:8080/client/api?response=json&command=deleteSnapshotPolicies&ids=3,5,7 HTTP/1.1");
       assertNonPayloadHeadersEqual(httpRequest, "Accept: application/json\n");
       assertPayloadEquals(httpRequest, null, null, false);
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnVoidOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, VoidOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -211,7 +209,7 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -227,14 +225,8 @@ public class SnapshotAsyncClientTest extends BaseCloudStackAsyncClientTest<Snaps
 
       assertResponseParserClassEquals(method, httpRequest, UnwrapOnlyJsonValue.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<SnapshotAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<SnapshotAsyncClient>>() {
-      };
    }
 }

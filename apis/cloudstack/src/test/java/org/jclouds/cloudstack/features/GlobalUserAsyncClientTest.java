@@ -20,17 +20,14 @@ package org.jclouds.cloudstack.features;
 
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.cloudstack.options.CreateUserOptions;
 import org.jclouds.cloudstack.options.UpdateUserOptions;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseFirstJsonValueNamed;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code GlobalUserAsyncClient}
@@ -52,7 +49,7 @@ public class GlobalUserAsyncClientTest extends BaseCloudStackAsyncClientTest<Glo
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -68,7 +65,7 @@ public class GlobalUserAsyncClientTest extends BaseCloudStackAsyncClientTest<Glo
 
       assertResponseParserClassEquals(method, httpRequest, ParseFirstJsonValueNamed.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
    }
@@ -84,14 +81,8 @@ public class GlobalUserAsyncClientTest extends BaseCloudStackAsyncClientTest<Glo
 
       assertResponseParserClassEquals(method, httpRequest, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<GlobalUserAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<GlobalUserAsyncClient>>() {
-      };
    }
 }

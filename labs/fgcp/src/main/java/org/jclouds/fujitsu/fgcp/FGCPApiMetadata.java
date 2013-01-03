@@ -18,6 +18,9 @@
  */
 package org.jclouds.fujitsu.fgcp;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -33,8 +36,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Module;
 
 /**
- * Implementation of {@link ApiMetadata} for Fujitsu's Global Cloud Platform
- * (FGCP, FGCP/S5) provider in Australia.
+ * Implementation of {@link ApiMetadata} for Fujitsu's Global Cloud Platform (FGCP)
  * 
  * @author Dies Koper
  */
@@ -55,6 +57,7 @@ public class FGCPApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(1) + "");
       // enables peer verification using the CAs bundled with the JRE (or
       // value of javax.net.ssl.trustStore if set)
       properties.setProperty(Constants.PROPERTY_TRUST_ALL_CERTS, "false");
@@ -63,7 +66,7 @@ public class FGCPApiMetadata extends BaseRestApiMetadata {
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(FGCPApi.class, FGCPAsyncApi.class);
@@ -90,10 +93,8 @@ public class FGCPApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
 }

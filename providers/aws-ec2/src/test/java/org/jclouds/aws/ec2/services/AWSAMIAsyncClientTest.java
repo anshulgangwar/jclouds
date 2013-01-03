@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
 import org.jclouds.aws.ec2.xml.ProductCodesHandler;
 import org.jclouds.ec2.options.CreateImageOptions;
 import org.jclouds.ec2.options.DescribeImagesOptions;
@@ -36,13 +37,10 @@ import org.jclouds.ec2.xml.PermissionHandler;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.http.functions.ReleasePayloadAndReturn;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code AWSAMIAsyncClient}
@@ -67,7 +65,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
             "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -87,7 +85,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -104,7 +102,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
    
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeImagesResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -126,7 +124,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, DescribeImagesResponseHandler.class);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -142,7 +140,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -158,7 +156,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
             "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -177,7 +175,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -191,11 +189,11 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=RegisterImage&RootDeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.DeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName",
+            "Action=RegisterImage&RootDeviceName=/dev/sda1&BlockDeviceMapping.0.DeviceName=/dev/sda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName",
             "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -216,12 +214,12 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
       assertNonPayloadHeadersEqual(request, "Host: ec2.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
             request,
-            "Action=RegisterImage&RootDeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.DeviceName=%2Fdev%2Fsda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName&Description=description&BlockDeviceMapping.1.Ebs.DeleteOnTermination=false&BlockDeviceMapping.1.DeviceName=%2Fdev%2Fdevice&BlockDeviceMapping.1.Ebs.SnapshotId=snapshot&BlockDeviceMapping.2.Ebs.DeleteOnTermination=false&BlockDeviceMapping.2.DeviceName=%2Fdev%2Fnewdevice&BlockDeviceMapping.2.VirtualName=newblock&BlockDeviceMapping.2.Ebs.VolumeSize=100",
+            "Action=RegisterImage&RootDeviceName=/dev/sda1&BlockDeviceMapping.0.DeviceName=/dev/sda1&BlockDeviceMapping.0.Ebs.SnapshotId=snapshotId&Name=imageName&Description=description&BlockDeviceMapping.1.Ebs.DeleteOnTermination=false&BlockDeviceMapping.1.DeviceName=/dev/device&BlockDeviceMapping.1.Ebs.SnapshotId=snapshot&BlockDeviceMapping.2.Ebs.DeleteOnTermination=false&BlockDeviceMapping.2.DeviceName=/dev/newdevice&BlockDeviceMapping.2.VirtualName=newblock&BlockDeviceMapping.2.Ebs.VolumeSize=100",
             "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ImageIdHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -238,7 +236,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, ProductCodesHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -256,7 +254,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, BlockDeviceMappingHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -274,7 +272,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, PermissionHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -294,7 +292,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
   
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -313,7 +311,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
             "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -330,7 +328,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
             "application/x-www-form-urlencoded", false);
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -349,7 +347,7 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
@@ -368,15 +366,8 @@ public class AWSAMIAsyncClientTest extends BaseAWSEC2AsyncClientTest<AWSAMIAsync
 
       assertResponseParserClassEquals(method, request, ReleasePayloadAndReturn.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<AWSAMIAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<AWSAMIAsyncClient>>() {
-      };
-   }
-
 }

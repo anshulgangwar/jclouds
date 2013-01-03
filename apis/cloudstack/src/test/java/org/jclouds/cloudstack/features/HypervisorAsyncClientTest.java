@@ -21,14 +21,11 @@ package org.jclouds.cloudstack.features;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
+import org.jclouds.Fallbacks.EmptySetOnNotFoundOr404;
 import org.jclouds.cloudstack.functions.ParseNamesFromHttpResponse;
 import org.jclouds.cloudstack.internal.BaseCloudStackAsyncClientTest;
 import org.jclouds.http.HttpRequest;
-import org.jclouds.rest.functions.ReturnEmptySetOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code HypervisorAsyncClient}
@@ -51,7 +48,7 @@ public class HypervisorAsyncClientTest extends BaseCloudStackAsyncClientTest<Hyp
 
       assertResponseParserClassEquals(method, httpRequest, ParseNamesFromHttpResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
@@ -68,15 +65,9 @@ public class HypervisorAsyncClientTest extends BaseCloudStackAsyncClientTest<Hyp
 
       assertResponseParserClassEquals(method, httpRequest, ParseNamesFromHttpResponse.class);
       assertSaxResponseParserClassEquals(method, null);
-      assertExceptionParserClassEquals(method, ReturnEmptySetOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, EmptySetOnNotFoundOr404.class);
 
       checkFilters(httpRequest);
 
-   }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<HypervisorAsyncClient>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<HypervisorAsyncClient>>() {
-      };
    }
 }

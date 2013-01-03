@@ -18,21 +18,7 @@
  */
 package org.jclouds.ec2.services;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Sets.newHashSet;
-import static org.jclouds.ec2.options.DescribeImagesOptions.Builder.imageIds;
-import static org.jclouds.ec2.options.RegisterImageBackedByEbsOptions.Builder.addNewBlockDevice;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableMap;
 import org.jclouds.compute.RunNodesException;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilderSpec;
@@ -51,11 +37,24 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.jclouds.ec2.options.DescribeImagesOptions.Builder.imageIds;
+import static org.jclouds.ec2.options.RegisterImageBackedByEbsOptions.Builder.addNewBlockDevice;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests behavior of {@code AMIClient}
- * 
+ *
  * @author Adrian Cole
  */
 @Test(groups = "live", singleThreaded = true)
@@ -70,7 +69,7 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
    protected Properties setupProperties() {
       Properties overrides = super.setupProperties();
       String ebsSpec = checkNotNull(setIfTestSystemPropertyPresent(overrides, provider + ".ebs-template"), provider
-            + ".ebs-template");
+              + ".ebs-template");
       ebsTemplate = TemplateBuilderSpec.parse(ebsSpec);
       return overrides;
    }
@@ -88,12 +87,12 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
    protected String imageId;
 
    @Override
-   @BeforeClass(groups = { "integration", "live" })
+   @BeforeClass(groups = {"integration", "live"})
    public void setupContext() {
       super.setupContext();
       ec2Client = view.unwrap(EC2ApiMetadata.CONTEXT_TOKEN).getApi();
       runningTester = new RetryablePredicate<RunningInstance>(new InstanceStateRunning(ec2Client), 600, 5,
-            TimeUnit.SECONDS);
+              TimeUnit.SECONDS);
 
       client = ec2Client.getAMIServices();
       if (ebsTemplate != null) {
@@ -119,18 +118,22 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
    public void testDescribeImages() {
       for (String region : ec2Client.getConfiguredRegions()) {
          Set<? extends Image> allResults = client.describeImagesInRegion(region);
-         assertNotNull(allResults);
-         assert allResults.size() >= 2 : allResults.size();
-         Iterator<? extends Image> iterator = allResults.iterator();
-         String id1 = iterator.next().getId();
-         String id2 = iterator.next().getId();
-         Set<? extends Image> twoResults = client.describeImagesInRegion(region, imageIds(id1, id2));
-         assertNotNull(twoResults);
-         assertEquals(twoResults.size(), 2);
-         iterator = twoResults.iterator();
-         assertEquals(iterator.next().getId(), id1);
-         assertEquals(iterator.next().getId(), id2);
+         verifyDescribeImagesResult(region, allResults);
       }
+   }
+
+   public void verifyDescribeImagesResult(String region, Set<? extends Image> allResults) {
+      assertNotNull(allResults);
+      assert allResults.size() >= 2 : allResults.size();
+      Iterator<? extends Image> iterator = allResults.iterator();
+      String id1 = iterator.next().getId();
+      String id2 = iterator.next().getId();
+      Set<? extends Image> twoResults = client.describeImagesInRegion(region, imageIds(id1, id2));
+      assertNotNull(twoResults);
+      assertEquals(twoResults.size(), 2);
+      iterator = twoResults.iterator();
+      assertEquals(iterator.next().getId(), id1);
+      assertEquals(iterator.next().getId(), id2);
    }
 
    @Test
@@ -142,7 +145,7 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
 
       // Register a new image...
       ebsBackedImageId = client.registerUnixImageBackedByEbsInRegion(regionId, ebsBackedImageName, snapshot.getId(),
-            addNewBlockDevice("/dev/sda2", "myvirtual", 1).withDescription("adrian"));
+              addNewBlockDevice("/dev/sda2", "myvirtual", 1).withDescription("adrian"));
       imagesToDeregister.add(ebsBackedImageId);
       final Image ebsBackedImage = getOnlyElement(client.describeImagesInRegion(regionId, imageIds(ebsBackedImageId)));
       assertEquals(ebsBackedImage.getName(), ebsBackedImageName);
@@ -151,9 +154,9 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
       assertEquals(ebsBackedImage.getRootDeviceName(), "/dev/sda1");
       assertEquals(ebsBackedImage.getDescription(), "adrian");
       assertEquals(
-            ebsBackedImage.getEbsBlockDevices().entrySet(),
-            ImmutableMap.of("/dev/sda1", new Image.EbsBlockDevice(snapshot.getId(), snapshot.getVolumeSize(), true),
-                  "/dev/sda2", new Image.EbsBlockDevice(null, 1, false)).entrySet());
+              ebsBackedImage.getEbsBlockDevices().entrySet(),
+              ImmutableMap.of("/dev/sda1", new Image.EbsBlockDevice(snapshot.getId(), snapshot.getVolumeSize(), true),
+                      "/dev/sda2", new Image.EbsBlockDevice(null, 1, false)).entrySet());
 
       // List of images after - should be one larger than before
       int after = client.describeImagesInRegion(regionId).size();
@@ -167,17 +170,18 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
       String instanceId = null;
       try {
          RunningInstance instance = getOnlyElement(concat(ec2Client.getInstanceServices().runInstancesInRegion(
-               regionId, null, imageId, 1, 1)));
+                 regionId, null, imageId, 1, 1)));
          instanceId = instance.getId();
-         
+
          assertTrue(runningTester.apply(instance), instanceId + "didn't achieve the state running!");
 
-         instance = getOnlyElement(concat(ec2Client.getInstanceServices().describeInstancesInRegion(regionId,
-               instanceId)));
+         instance = (RunningInstance) getOnlyElement(concat(ec2Client.getInstanceServices()
+                 .describeInstancesInRegion(regionId,
+                         instanceId)));
          BlockDevice device = instance.getEbsBlockDevices().get("/dev/sda1");
          assertNotNull(device, "device: /dev/sda1 not present on: " + instance);
          Snapshot snapshot = ec2Client.getElasticBlockStoreServices().createSnapshotInRegion(regionId,
-               device.getVolumeId());
+                 device.getVolumeId());
          snapshotsToDelete.add(snapshot.getId());
          return snapshot;
       } finally {
@@ -192,7 +196,7 @@ public class AMIClientLiveTest extends BaseComputeServiceContextLiveTest {
    }
 
    @Override
-   @AfterClass(groups = { "integration", "live" })
+   @AfterClass(groups = {"integration", "live"})
    protected void tearDownContext() {
       for (String imageId : imagesToDeregister)
          client.deregisterImageInRegion(regionId, imageId);

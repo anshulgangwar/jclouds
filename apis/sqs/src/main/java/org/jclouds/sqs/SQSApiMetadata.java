@@ -18,6 +18,8 @@
  */
 package org.jclouds.sqs;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
 import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
 import static org.jclouds.sqs.config.SQSProperties.CREATE_QUEUE_MAX_RETRIES;
@@ -43,6 +45,7 @@ import com.google.inject.Module;
 public class SQSApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<SQSApi, SQSAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<SQSApi, SQSAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -57,9 +60,12 @@ public class SQSApiMetadata extends BaseRestApiMetadata {
    protected SQSApiMetadata(Builder builder) {
       super(builder);
    }
-   
+
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", SECONDS.toMillis(30) + "");
+      // this will gracefully attempt to resolve name issues
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "QueueApi.create", SECONDS.toMillis(61) + "");
       properties.setProperty(CREATE_QUEUE_MAX_RETRIES, "60");
       properties.setProperty(CREATE_QUEUE_RETRY_INTERVAL, "1000");
       properties.setProperty(PROPERTY_AUTH_TAG, "AWS");
@@ -67,7 +73,7 @@ public class SQSApiMetadata extends BaseRestApiMetadata {
       return properties;
    }
    
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder(Class<?> api, Class<?> asyncApi) {
          super(api, asyncApi);
@@ -86,12 +92,10 @@ public class SQSApiMetadata extends BaseRestApiMetadata {
       public SQSApiMetadata build() {
          return new SQSApiMetadata(this);
       }
-      
+
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }
-
 }

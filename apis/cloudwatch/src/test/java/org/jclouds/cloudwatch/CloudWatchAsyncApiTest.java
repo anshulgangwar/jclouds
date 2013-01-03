@@ -41,14 +41,12 @@ import org.jclouds.location.config.LocationModule;
 import org.jclouds.location.suppliers.RegionIdToURISupplier;
 import org.jclouds.rest.ConfiguresRestClient;
 import org.jclouds.rest.internal.BaseAsyncApiTest;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.util.Suppliers2;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Module;
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests behavior of {@code CloudWatchAsyncApi}
@@ -72,21 +70,16 @@ public class CloudWatchAsyncApiTest extends BaseAsyncApiTest<CloudWatchAsyncApi>
       assertNonPayloadHeadersEqual(request, "Host: monitoring.us-east-1.amazonaws.com\n");
       assertPayloadEquals(
                request,
-               "Action=GetMetricStatistics&Statistics.member.1=Average&Period=60&Namespace=AWS%2FEC2&MetricName=CPUUtilization&StartTime=1970-01-01T02%3A46%3A40Z&EndTime=1970-01-01T02%3A46%3A40Z&Dimensions.member.1.Name=InstanceId&Dimensions.member.1.Value=i-12312313",
+               "Action=GetMetricStatistics&Statistics.member.1=Average&Period=60&Namespace=AWS/EC2&MetricName=CPUUtilization&StartTime=1970-01-01T02%3A46%3A40Z&EndTime=1970-01-01T02%3A46%3A40Z&Dimensions.member.1.Name=InstanceId&Dimensions.member.1.Value=i-12312313",
                "application/x-www-form-urlencoded", false);
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, GetMetricStatisticsResponseHandler.class);
-      assertExceptionParserClassEquals(method, null);
+      assertFallbackClassEquals(method, null);
 
       checkFilters(request);
    }
 
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<CloudWatchAsyncApi>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<CloudWatchAsyncApi>>() {
-      };
-   }
 
    @ConfiguresRestClient
    private static final class TestMonitoringRestClientModule extends CloudWatchRestClientModule {
@@ -128,5 +121,6 @@ public class CloudWatchAsyncApiTest extends BaseAsyncApiTest<CloudWatchAsyncApi>
       assertEquals(request.getFilters().size(), 1);
       assertEquals(request.getFilters().get(0).getClass(), FormSigner.class);
    }
+
 
 }

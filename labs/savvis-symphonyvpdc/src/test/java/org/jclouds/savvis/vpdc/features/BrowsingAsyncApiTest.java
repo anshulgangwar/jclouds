@@ -22,10 +22,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 
+import org.jclouds.Fallbacks.NullOnNotFoundOr404;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
-import org.jclouds.rest.functions.ReturnNullOnNotFoundOr404;
-import org.jclouds.rest.internal.RestAnnotationProcessor;
 import org.jclouds.savvis.vpdc.options.GetVMOptions;
 import org.jclouds.savvis.vpdc.xml.FirewallServiceHandler;
 import org.jclouds.savvis.vpdc.xml.NetworkHandler;
@@ -34,8 +33,6 @@ import org.jclouds.savvis.vpdc.xml.TaskHandler;
 import org.jclouds.savvis.vpdc.xml.VDCHandler;
 import org.jclouds.savvis.vpdc.xml.VMHandler;
 import org.testng.annotations.Test;
-
-import com.google.inject.TypeLiteral;
 
 /**
  * Tests annotation parsing of {@code BrowsingAsyncApi}
@@ -55,7 +52,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -70,7 +67,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, OrgHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -85,7 +82,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VDCHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -100,7 +97,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VDCHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -116,7 +113,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, NetworkHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -132,7 +129,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, NetworkHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -149,7 +146,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VMHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -166,7 +163,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VMHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -184,7 +181,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VMHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -201,7 +198,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, VMHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -216,7 +213,7 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, TaskHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
@@ -232,15 +229,8 @@ public class BrowsingAsyncApiTest extends BaseVPDCAsyncApiTest<BrowsingAsyncApi>
 
       assertResponseParserClassEquals(method, request, ParseSax.class);
       assertSaxResponseParserClassEquals(method, FirewallServiceHandler.class);
-      assertExceptionParserClassEquals(method, ReturnNullOnNotFoundOr404.class);
+      assertFallbackClassEquals(method, NullOnNotFoundOr404.class);
 
       checkFilters(request);
    }
-
-   @Override
-   protected TypeLiteral<RestAnnotationProcessor<BrowsingAsyncApi>> createTypeLiteral() {
-      return new TypeLiteral<RestAnnotationProcessor<BrowsingAsyncApi>>() {
-      };
-   }
-
 }

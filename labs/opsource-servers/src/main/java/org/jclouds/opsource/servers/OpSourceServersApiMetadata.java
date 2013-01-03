@@ -18,6 +18,9 @@
  */
 package org.jclouds.opsource.servers;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+
 import java.net.URI;
 import java.util.Properties;
 
@@ -36,6 +39,7 @@ import com.google.common.reflect.TypeToken;
 public class OpSourceServersApiMetadata extends BaseRestApiMetadata {
    
    public static final TypeToken<RestContext<OpSourceServersApi, OpSourceServersAsyncApi>> CONTEXT_TOKEN = new TypeToken<RestContext<OpSourceServersApi, OpSourceServersAsyncApi>>() {
+      private static final long serialVersionUID = 1L;
    };
 
    @Override
@@ -53,12 +57,11 @@ public class OpSourceServersApiMetadata extends BaseRestApiMetadata {
 
    public static Properties defaultProperties() {
       Properties properties = BaseRestApiMetadata.defaultProperties();
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(3) + "");
       return properties;
    }
 
-   public static class Builder
-         extends
-         BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
 
       protected Builder() {
          super(OpSourceServersApi.class, OpSourceServersAsyncApi.class);
@@ -71,8 +74,6 @@ public class OpSourceServersApiMetadata extends BaseRestApiMetadata {
          .defaultEndpoint("https://api.opsourcecloud.net/oec/${jclouds.api-version}")
          .defaultProperties(OpSourceServersApiMetadata.defaultProperties())
          .defaultModule(OpSourceServersRestClientModule.class);
-//         .view(TypeToken.of(ComputeServiceContext.class))
-//         .defaultModules(ImmutableSet.<Class<? extends Module>>of(OpSourceServersRestClientModule.class, OpSourceServersComputeServiceContextModule.class));
       }
 
       @Override
@@ -81,11 +82,8 @@ public class OpSourceServersApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
-
    }
-
 }

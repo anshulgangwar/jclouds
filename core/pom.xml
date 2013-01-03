@@ -49,26 +49,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>net.oauth.core</groupId>
-            <artifactId>oauth</artifactId>
-            <version>20100527</version>
-        </dependency>
-        <!-- only required for Pems.java and only writing a private key file -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk16</artifactId>
-            <version>1.46</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>aopalliance</groupId>
-            <artifactId>aopalliance</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-            <version>1.12</version>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.inject.extensions</groupId>
@@ -108,7 +91,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>13.0.1</version>
+            <version>14.0-rc1</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -116,6 +99,12 @@
             <version>4.2.0</version>
             <scope>provided</scope>
         </dependency>
+      <dependency>
+        <groupId>org.osgi</groupId>
+        <artifactId>org.osgi.compendium</artifactId>
+        <version>4.2.0</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
 
     <build>

@@ -18,10 +18,10 @@
  */
 package org.jclouds.ec2.config;
 
-import java.util.Map;
-
-import javax.inject.Singleton;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import org.jclouds.aws.config.WithZonesFormSigningRestClientModule;
 import org.jclouds.ec2.EC2Api;
 import org.jclouds.ec2.EC2AsyncApi;
@@ -48,7 +48,7 @@ import org.jclouds.ec2.services.SecurityGroupClient;
 import org.jclouds.ec2.services.WindowsAsyncClient;
 import org.jclouds.ec2.services.WindowsClient;
 import org.jclouds.ec2.suppliers.DescribeAvailabilityZonesInRegion;
-import org.jclouds.ec2.suppliers.DescribeRegionsForRegionURIs;
+import org.jclouds.ec2.suppliers.ExtendedDescribeRegionsForRegionURIs;
 import org.jclouds.location.config.LocationModule;
 import org.jclouds.location.suppliers.RegionIdToURISupplier;
 import org.jclouds.location.suppliers.RegionIdToZoneIdsSupplier;
@@ -60,10 +60,8 @@ import org.jclouds.location.suppliers.derived.ZoneIdToURIFromJoinOnRegionIdToURI
 import org.jclouds.location.suppliers.derived.ZoneIdsFromRegionIdToZoneIdsValues;
 import org.jclouds.rest.ConfiguresRestClient;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
+import javax.inject.Singleton;
+import java.util.Map;
 
 /**
  * Configures the EC2 connection.
@@ -123,7 +121,7 @@ public class EC2RestClientModule<S extends EC2Api, A extends EC2AsyncApi> extend
    protected void installLocations() {
       install(new LocationModule());
       bind(RegionIdToZoneIdsSupplier.class).to(DescribeAvailabilityZonesInRegion.class).in(Scopes.SINGLETON);
-      bind(RegionIdToURISupplier.class).to(DescribeRegionsForRegionURIs.class).in(Scopes.SINGLETON);
+      bind(RegionIdToURISupplier.class).to(ExtendedDescribeRegionsForRegionURIs.class).in(Scopes.SINGLETON);
       bind(ZoneIdsSupplier.class).to(ZoneIdsFromRegionIdToZoneIdsValues.class).in(Scopes.SINGLETON);
       bind(RegionIdsSupplier.class).to(RegionIdsFromRegionIdToURIKeySet.class).in(Scopes.SINGLETON);
       bind(ZoneIdToURISupplier.class).to(ZoneIdToURIFromJoinOnRegionIdToURI.class).in(Scopes.SINGLETON);

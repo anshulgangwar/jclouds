@@ -18,6 +18,8 @@
  */
 package org.jclouds.atmos;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
 import static org.jclouds.blobstore.reference.BlobStoreConstants.PROPERTY_USER_METADATA_PREFIX;
 import static org.jclouds.location.reference.LocationConstants.PROPERTY_REGIONS;
 
@@ -36,15 +38,15 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Module;
 
 /**
- * Implementation of {@link ApiMetadata} for Rackspace Cloud Files API
+ * Implementation of {@link ApiMetadata} for EMC Atmos API
  * 
  * @author Adrian Cole
  */
 public class AtmosApiMetadata extends BaseRestApiMetadata {
 
    public static final TypeToken<RestContext<AtmosClient, AtmosAsyncClient>> CONTEXT_TOKEN = new TypeToken<RestContext<AtmosClient, AtmosAsyncClient>>() {
+      private static final long serialVersionUID = 1L;
    };
-   
    
    private static Builder builder() {
       return new Builder();
@@ -67,10 +69,14 @@ public class AtmosApiMetadata extends BaseRestApiMetadata {
       Properties properties = BaseRestApiMetadata.defaultProperties();
       properties.setProperty(PROPERTY_REGIONS, "DEFAULT");
       properties.setProperty(PROPERTY_USER_METADATA_PREFIX, "X-Object-Meta-");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "default", MINUTES.toMillis(5) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AtmosClient.createFile", MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AtmosClient.updateFile", MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AtmosClient.readFile", MINUTES.toMillis(10) + "");
       return properties;
    }
 
-   public static class Builder extends BaseRestApiMetadata.Builder {
+   public static class Builder extends BaseRestApiMetadata.Builder<Builder> {
       protected Builder() {
          super(AtmosClient.class, AtmosAsyncClient.class);
          id("atmos")
@@ -91,8 +97,7 @@ public class AtmosApiMetadata extends BaseRestApiMetadata {
       }
 
       @Override
-      public Builder fromApiMetadata(ApiMetadata in) {
-         super.fromApiMetadata(in);
+      protected Builder self() {
          return this;
       }
    }

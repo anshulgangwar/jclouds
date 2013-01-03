@@ -18,31 +18,29 @@
  */
 package org.jclouds.ec2.xml;
 
-import static org.jclouds.util.SaxUtils.currentOrNull;
-
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Resource;
-import javax.inject.Inject;
-
+import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.jclouds.aws.util.AWSUtils;
 import org.jclouds.ec2.domain.Hypervisor;
 import org.jclouds.ec2.domain.Image;
-import org.jclouds.ec2.domain.RootDeviceType;
-import org.jclouds.ec2.domain.VirtualizationType;
 import org.jclouds.ec2.domain.Image.Architecture;
 import org.jclouds.ec2.domain.Image.EbsBlockDevice;
 import org.jclouds.ec2.domain.Image.ImageState;
 import org.jclouds.ec2.domain.Image.ImageType;
+import org.jclouds.ec2.domain.RootDeviceType;
+import org.jclouds.ec2.domain.VirtualizationType;
 import org.jclouds.http.functions.ParseSax;
 import org.jclouds.location.Region;
 import org.jclouds.logging.Logger;
 import org.xml.sax.Attributes;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.Set;
+
+import static org.jclouds.util.SaxUtils.currentOrNull;
 
 /**
  * Parses the following XML document:
@@ -83,9 +81,13 @@ public class DescribeImagesResponseHandler extends ParseSax.HandlerForGeneratedR
    private String ramdiskId;
    private boolean inProductCodes;
    private boolean inBlockDeviceMapping;
+
+
+   private boolean inTagSet;
    /**
     * Eucalyptus 1.6 doesn't set rootDeviceType
     */
+
    private RootDeviceType rootDeviceType = RootDeviceType.INSTANCE_STORE;
    private Map<String, EbsBlockDevice> ebsBlockDevices = Maps.newHashMap();
    private String deviceName;
@@ -107,6 +109,8 @@ public class DescribeImagesResponseHandler extends ParseSax.HandlerForGeneratedR
          inProductCodes = true;
       } else if (qName.equals("blockDeviceMapping")) {
          inBlockDeviceMapping = true;
+      } else if (qName.equals("tagSet")) {
+         inTagSet = true;
       }
    }
 
@@ -129,8 +133,7 @@ public class DescribeImagesResponseHandler extends ParseSax.HandlerForGeneratedR
       } else if (qName.equals("imageState")) {
          rawState = currentOrNull(currentText);
          imageState = ImageState.fromValue(rawState);
-      // eucalyptus
-      } else if (qName.equals("imageType") || qName.equals("type")) {
+      } else if (qName.equals("imageType")) {
          imageType = ImageType.fromValue(currentText.toString().trim());
       } else if (qName.equals("isPublic")) {
          isPublic = Boolean.parseBoolean(currentText.toString().trim());
@@ -142,6 +145,8 @@ public class DescribeImagesResponseHandler extends ParseSax.HandlerForGeneratedR
          productCodes.add(currentText.toString().trim());
       } else if (qName.equals("productCodes")) {
          inProductCodes = false;
+      } else if (qName.equals("tagSet")) {
+         inTagSet = false;
       } else if (qName.equals("blockDeviceMapping")) {
          inBlockDeviceMapping = false;
       } else if (qName.equals("snapshotId")) {
@@ -167,7 +172,7 @@ public class DescribeImagesResponseHandler extends ParseSax.HandlerForGeneratedR
             this.snapshotId = null;
             this.volumeSize = 0;
             this.deleteOnTermination = true;
-         } else if (!inProductCodes) {
+         } else if (!inProductCodes && !inTagSet) {
             try {
                String region = getRequest() != null ? AWSUtils.findRegionInArgsOrNull(getRequest()) : null;
                if (region == null)
