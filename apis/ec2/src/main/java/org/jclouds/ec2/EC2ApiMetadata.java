@@ -18,16 +18,9 @@
  */
 package org.jclouds.ec2;
 
-import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
-import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
-import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS;
-import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT;
-
-import java.net.URI;
-import java.util.Properties;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Module;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.ec2.compute.EC2ComputeServiceContext;
 import org.jclouds.ec2.compute.config.EC2ComputeServiceContextModule;
@@ -36,9 +29,19 @@ import org.jclouds.ec2.config.EC2RestClientModule;
 import org.jclouds.rest.RestContext;
 import org.jclouds.rest.internal.BaseRestApiMetadata;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Module;
+import java.net.URI;
+import java.util.Properties;
+
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_AUTH_TAG;
+import static org.jclouds.aws.reference.AWSConstants.PROPERTY_HEADER_TAG;
+import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AMI_OWNERS;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS;
+import static org.jclouds.ec2.reference.EC2Constants.PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.jclouds.Constants.PROPERTY_TIMEOUTS_PREFIX;
+import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
+import static org.jclouds.Constants.PROPERTY_SO_TIMEOUT;
 
 /**
  * Implementation of {@link ApiMetadata} for Amazon's EC2 api.
@@ -87,6 +90,11 @@ public class EC2ApiMetadata extends BaseRestApiMetadata {
       properties.setProperty(PROPERTY_EC2_TIMEOUT_SECURITYGROUP_PRESENT, "500");
       properties.setProperty(PROPERTY_EC2_AUTO_ALLOCATE_ELASTIC_IPS, "false");
       properties.setProperty(RESOURCENAME_DELIMITER, "#");
+      properties.setProperty(PROPERTY_CONNECTION_TIMEOUT, MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_SO_TIMEOUT, MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "AmiClient.createImageInRegion", MINUTES.toMillis(10) + "");
+      properties.setProperty(PROPERTY_TIMEOUTS_PREFIX + "InstanceClient.runInstancesInRegion",
+              MINUTES.toMillis(10) + "");
       return properties;
    }
 

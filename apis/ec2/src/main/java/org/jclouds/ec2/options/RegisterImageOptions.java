@@ -18,10 +18,10 @@
  */
 package org.jclouds.ec2.options;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.jclouds.ec2.domain.Image.Architecture;
 import org.jclouds.ec2.options.internal.BaseEC2RequestOptions;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Contains options supported in the Form API for the RegisterImage operation. <h2>
@@ -48,6 +48,11 @@ public class RegisterImageOptions extends BaseEC2RequestOptions {
     */
    public RegisterImageOptions asArchitecture(Architecture architecture) {
       formParameters.put("Architecture", checkNotNull(architecture, "architecture").value());
+      return this;
+   }
+
+   public RegisterImageOptions asArchitecture(String architecture) {
+      formParameters.put("Architecture", checkNotNull(architecture, "architecture"));
       return this;
    }
 
@@ -94,6 +99,14 @@ public class RegisterImageOptions extends BaseEC2RequestOptions {
    }
 
    public static class Builder {
+      /**
+       * @see RegisterImageOptions#asArchitecture(String)
+       */
+      public static RegisterImageOptions asArchitecture(String architecture) {
+         RegisterImageOptions options = new RegisterImageOptions();
+         return options.asArchitecture(architecture);
+      }
+
       /**
        * @see RegisterImageOptions#asArchitecture(Architecture)
        */

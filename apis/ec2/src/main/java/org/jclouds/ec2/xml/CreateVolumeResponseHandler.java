@@ -18,15 +18,10 @@
  */
 package org.jclouds.ec2.xml;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.inject.Inject;
-
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.jclouds.aws.util.AWSUtils;
 import org.jclouds.date.DateCodec;
 import org.jclouds.date.DateCodecFactory;
@@ -39,10 +34,13 @@ import org.jclouds.location.Zone;
 import org.jclouds.rest.internal.GeneratedHttpRequest;
 import org.xml.sax.Attributes;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import javax.inject.Inject;
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * 
@@ -81,6 +79,7 @@ public class CreateVolumeResponseHandler extends ParseSax.HandlerForGeneratedReq
    protected Date attachTime;
 
    protected boolean inAttachmentSet;
+   protected boolean inTagSet;
 
    protected String region;
 
@@ -91,6 +90,8 @@ public class CreateVolumeResponseHandler extends ParseSax.HandlerForGeneratedReq
    public void startElement(String uri, String name, String qName, Attributes attrs) {
       if (qName.equals("attachmentSet")) {
          inAttachmentSet = true;
+      } else if (qName.equals("tagSet")) {
+         inTagSet = true;
       }
    }
 
@@ -121,6 +122,8 @@ public class CreateVolumeResponseHandler extends ParseSax.HandlerForGeneratedReq
          createTime = dateCodec.toDate(currentText.toString().trim());
       } else if (qName.equals("attachmentSet")) {
          inAttachmentSet = false;
+      } else if (qName.equals("tagSet")) {
+         inTagSet = false;
       } else if (qName.equals("instanceId")) {
          instanceId = currentText.toString().trim();
       } else if (qName.equals("snapshotId")) {
@@ -132,7 +135,7 @@ public class CreateVolumeResponseHandler extends ParseSax.HandlerForGeneratedReq
       } else if (qName.equals("attachTime")) {
          attachTime = dateCodec.toDate(currentText.toString().trim());
       } else if (qName.equals("item")) {
-         if (inAttachmentSet) {
+         if (inAttachmentSet  && !inTagSet) {
             attachments.add(new Attachment(region, volumeId, instanceId, device, attachmentStatus, attachTime));
             volumeId = null;
             instanceId = null;

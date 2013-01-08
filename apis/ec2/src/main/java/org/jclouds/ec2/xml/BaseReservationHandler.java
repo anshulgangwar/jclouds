@@ -18,14 +18,9 @@
  */
 package org.jclouds.ec2.xml;
 
-import static org.jclouds.util.SaxUtils.currentOrNull;
-import static org.jclouds.util.SaxUtils.equalsOrSuffix;
-
-import java.util.Date;
-import java.util.Set;
-
-import javax.inject.Inject;
-
+import com.google.common.base.Supplier;
+import com.google.common.collect.Sets;
+import com.google.inject.Provider;
 import org.jclouds.aws.util.AWSUtils;
 import org.jclouds.date.DateCodec;
 import org.jclouds.date.DateCodecFactory;
@@ -40,9 +35,12 @@ import org.jclouds.http.functions.ParseSax.HandlerForGeneratedRequestWithResult;
 import org.jclouds.location.Region;
 import org.xml.sax.Attributes;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.Sets;
-import com.google.inject.Provider;
+import javax.inject.Inject;
+import java.util.Date;
+import java.util.Set;
+
+import static org.jclouds.util.SaxUtils.currentOrNull;
+import static org.jclouds.util.SaxUtils.equalsOrSuffix;
 
 /**
  * 
@@ -71,6 +69,8 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    protected boolean inInstancesSet;
    protected boolean inProductCodes;
    protected boolean inGroupSet;
+   protected boolean inTagSet;
+   protected boolean inVpcGroupSet;
 
    // attachments
    private String volumeId;
@@ -96,8 +96,15 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = true;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = true;
-      } 
+         if(!inInstancesSet) {
+            inGroupSet = true;
+         } else {
+            inVpcGroupSet = true;
+         }
+
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+         inTagSet = true;
+      }
    }
 
    public void endElement(String uri, String name, String qName) {
@@ -109,7 +116,13 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "productCodes")) {
          inProductCodes = false;
       } else if (equalsOrSuffix(qName, "groupSet")) {
-         inGroupSet = false;
+         if(!inInstancesSet) {
+            inGroupSet = false;
+         } else {
+            inVpcGroupSet = false;
+         }
+      } else if (equalsOrSuffix(qName, "tagSet")) {
+         inTagSet = false;
       } else if (equalsOrSuffix(qName, "groupId")) {
          groupNames.add(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "ownerId")) {
@@ -163,7 +176,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
       } else if (equalsOrSuffix(qName, "reason")) {
          builder.reason(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "rootDeviceType")) {
-         builder.rootDeviceType(RootDeviceType.fromValue(currentOrNull(currentText)));
+         builder.rootDeviceType(RootDeviceType.fromValue("ebs"));
       } else if (equalsOrSuffix(qName, "rootDeviceName")) {
          builder.rootDeviceName(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "deviceName")) {
@@ -218,7 +231,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
    }
 
    protected boolean endOfInstanceItem() {
-      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet;
+      return itemDepth <= 2 && inInstancesSet && !inProductCodes && !inGroupSet && !inTagSet && !inVpcGroupSet;
    }
 
    public void characters(char ch[], int start, int length) {

@@ -18,17 +18,15 @@
  */
 package org.jclouds.ec2.xml;
 
-import java.util.Set;
-
-import javax.inject.Inject;
-
+import com.google.common.collect.Sets;
 import org.jclouds.ec2.domain.Volume;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.functions.ParseSax;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import com.google.common.collect.Sets;
+import javax.inject.Inject;
+import java.util.Set;
 
 /**
  * @author Adrian Cole
@@ -39,6 +37,7 @@ public class DescribeVolumesResponseHandler extends ParseSax.HandlerWithResult<S
    private final CreateVolumeResponseHandler volumeHandler;
 
    private boolean inAttachmentSet;
+   private boolean inTagSet;
 
    @Inject
    public DescribeVolumesResponseHandler(CreateVolumeResponseHandler volumeHandler) {
@@ -54,7 +53,10 @@ public class DescribeVolumesResponseHandler extends ParseSax.HandlerWithResult<S
             throws SAXException {
       if (qName.equals("attachmentSet")) {
          inAttachmentSet = true;
+      } else if (qName.equals("tagSet")) {
+         inTagSet = true;
       }
+
       volumeHandler.startElement(uri, localName, qName, attributes);
    }
 
@@ -63,7 +65,9 @@ public class DescribeVolumesResponseHandler extends ParseSax.HandlerWithResult<S
       volumeHandler.endElement(uri, localName, qName);
       if (qName.equals("attachmentSet")) {
          inAttachmentSet = false;
-      } else if (qName.equals("item") && !inAttachmentSet) {
+      } else if (qName.equals("tagSet")) {
+         inTagSet = false;
+      } else if (qName.equals("item") && !inAttachmentSet  && !inTagSet) {
          this.volumes.add(volumeHandler.getResult());
       }
    }

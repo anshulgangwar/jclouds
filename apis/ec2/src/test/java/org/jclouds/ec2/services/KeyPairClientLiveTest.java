@@ -18,12 +18,7 @@
  */
 package org.jclouds.ec2.services;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.util.Set;
-import java.util.SortedSet;
-
+import com.google.common.collect.Sets;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
@@ -31,7 +26,11 @@ import org.jclouds.ec2.domain.KeyPair;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+import java.util.SortedSet;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 /**
  * Tests behavior of {@code KeyPairClient}
@@ -73,14 +72,9 @@ public class KeyPairClientLiveTest extends BaseComputeServiceContextLiveTest {
    public static final String PREFIX = System.getProperty("user.name") + "-ec2";
 
    @Test
-   void testCreateKeyPair() {
+   public void testCreateKeyPair() {
       String keyName = PREFIX + "1";
-      try {
-         client.deleteKeyPairInRegion(null, keyName);
-      } catch (Exception e) {
-
-      }
-      client.deleteKeyPairInRegion(null, keyName);
+      cleanUpKeyPair(keyName);
 
       KeyPair result = client.createKeyPairInRegion(null, keyName);
       assertNotNull(result);
@@ -94,6 +88,15 @@ public class KeyPairClientLiveTest extends BaseComputeServiceContextLiveTest {
       KeyPair listPair = twoResults.iterator().next();
       assertEquals(listPair.getKeyName(), result.getKeyName());
       assertEquals(listPair.getSha1OfPrivateKey(), result.getSha1OfPrivateKey());
+      cleanUpKeyPair(keyName);
+   }
+
+   public void cleanUpKeyPair(String keyName) {
+      try {
+         client.deleteKeyPairInRegion(null, keyName);
+      } catch (Exception e) {
+
+      }
    }
 
 }

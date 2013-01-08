@@ -18,17 +18,17 @@
  */
 package org.jclouds.ec2.options;
 
+import org.jclouds.ec2.domain.Image.Architecture;
+import org.jclouds.http.options.HttpRequestOptions;
+import org.testng.annotations.Test;
+
+import java.util.Collections;
+
 import static org.jclouds.ec2.options.RegisterImageOptions.Builder.asArchitecture;
 import static org.jclouds.ec2.options.RegisterImageOptions.Builder.withDescription;
 import static org.jclouds.ec2.options.RegisterImageOptions.Builder.withKernelId;
 import static org.jclouds.ec2.options.RegisterImageOptions.Builder.withRamdisk;
 import static org.testng.Assert.assertEquals;
-
-import java.util.Collections;
-
-import org.jclouds.ec2.domain.Image.Architecture;
-import org.jclouds.http.options.HttpRequestOptions;
-import org.testng.annotations.Test;
 
 /**
  * Tests possible uses of RegisterImageOptions and RegisterImageOptions.Builder.*
@@ -92,7 +92,7 @@ public class RegisterImageOptionsTest {
 
    @Test(expectedExceptions = NullPointerException.class)
    public void testWithArchitectureNPE() {
-      asArchitecture(null);
+      asArchitecture((Architecture)null);
    }
 
    @Test

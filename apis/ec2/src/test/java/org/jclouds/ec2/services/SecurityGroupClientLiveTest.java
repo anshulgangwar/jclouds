@@ -18,12 +18,11 @@
  */
 package org.jclouds.ec2.services;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-import java.util.Iterator;
-import java.util.Set;
-
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.ec2.EC2ApiMetadata;
 import org.jclouds.ec2.EC2Client;
@@ -34,10 +33,18 @@ import org.jclouds.ec2.domain.UserIdGroupPair;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import java.util.Set;
+
+import static com.google.common.base.Predicates.compose;
+import static com.google.common.base.Predicates.in;
+import static com.google.common.collect.Iterables.all;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
+
+
 
 /**
  * Tests behavior of {@code SecurityGroupClient}
@@ -62,7 +69,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    @Test
-   void testDescribe() {
+   protected void testDescribe() {
       for (String region : ec2Client.getConfiguredRegions()) {
          Set<SecurityGroup> allResults = client.describeSecurityGroupsInRegion(region);
          assertNotNull(allResults);
@@ -77,12 +84,11 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    @Test
-   void testCreateSecurityGroup() {
+   protected void testCreateSecurityGroup() {
       String groupName = PREFIX + "1";
       cleanupAndSleep(groupName);
       try {
          String groupDescription = PREFIX + "1 description";
-         client.deleteSecurityGroupInRegion(null, groupName);
          client.createSecurityGroupInRegion(null, groupName, groupDescription);
          verifySecurityGroup(groupName, groupDescription);
       } finally {
@@ -100,7 +106,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    @Test
-   void testAuthorizeSecurityGroupIngressCidr() {
+   protected void testAuthorizeSecurityGroupIngressCidr() {
       String groupName = PREFIX + "ingress";
       cleanupAndSleep(groupName);
       try {
@@ -116,7 +122,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    @Test
-   void testAuthorizeSecurityGroupIngressSourcePort() {
+   protected void testAuthorizeSecurityGroupIngressSourcePort() {
       String groupName = PREFIX + "ingress";
       cleanupAndSleep(groupName);
       try {
@@ -131,7 +137,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
       }
    }
 
-   private void verifySecurityGroup(String groupName, String description) {
+   protected void verifySecurityGroup(String groupName, String description) {
       Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null, groupName);
       assertNotNull(oneResult);
       assertEquals(oneResult.size(), 1);
@@ -141,7 +147,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    @Test
-   void testAuthorizeSecurityGroupIngressSourceGroup() {
+   protected void testAuthorizeSecurityGroupIngressSourceGroup() {
       final String group1Name = PREFIX + "ingress1";
       String group2Name = PREFIX + "ingress2";
       cleanupAndSleep(group2Name);
@@ -167,7 +173,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
          }));
 
          client.revokeSecurityGroupIngressInRegion(null, group2Name,
-               new UserIdGroupPair(group.getOwnerId(), group1Name));
+                 new UserIdGroupPair(group.getOwnerId(), group1Name));
          assertEventually(new GroupHasNoPermissions(client, group2Name));
       } finally {
          client.deleteSecurityGroupInRegion(null, group2Name);
@@ -179,7 +185,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
       @Override
       public boolean apply(IpPermission arg0) {
          return arg0.getIpProtocol() == IpProtocol.TCP && arg0.getFromPort() == 80 && arg0.getToPort() == 80
-               && arg0.getIpRanges().equals(ImmutableSet.of("0.0.0.0/0"));
+                 && arg0.getIpRanges().equals(ImmutableSet.of("0.0.0.0/0"));
       }
    }
 
@@ -197,8 +203,8 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
       public void run() {
          try {
             Set<SecurityGroup> oneResult = client.describeSecurityGroupsInRegion(null, group);
-            assert Iterables.all(Iterables.getOnlyElement(oneResult).getIpPermissions(), permission) : permission
-                  + ": " + oneResult;
+            assert all(getOnlyElement(oneResult), permission) : permission
+                    + ": " + oneResult;
          } catch (Exception e) {
             throw new AssertionError(e);
          }
@@ -220,7 +226,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
             assertNotNull(oneResult);
             assertEquals(oneResult.size(), 1);
             SecurityGroup listPair = oneResult.iterator().next();
-            assertEquals(listPair.getIpPermissions().size(), 0);
+            assertEquals(listPair.size(), 0);
          } catch (Exception e) {
             throw new AssertionError(e);
          }
@@ -230,15 +236,15 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    protected void ensureGroupsExist(String group1Name, String group2Name) {
       Set<SecurityGroup> twoResults = client.describeSecurityGroupsInRegion(null, group1Name, group2Name);
       assertNotNull(twoResults);
-      assertEquals(twoResults.size(), 2);
-      Iterator<SecurityGroup> iterator = twoResults.iterator();
-      SecurityGroup listPair1 = iterator.next();
-      assertEquals(listPair1.getName(), group1Name);
-      assertEquals(listPair1.getDescription(), group1Name);
+      assertTrue(twoResults.size() >= 2);// in VPC could be multiple groups with the same name
 
-      SecurityGroup listPair2 = iterator.next();
-      assertEquals(listPair2.getName(), group2Name);
-      assertEquals(listPair2.getDescription(), group2Name);
+      assertTrue(all(twoResults, compose(in(ImmutableSet.of(group1Name, group2Name)),
+              new Function<SecurityGroup, String>() {
+                 @Override
+                 public String apply(SecurityGroup in) {
+                    return in.getName();
+                 }
+              })));
    }
 
    private static final int INCONSISTENCY_WINDOW = 5000;
@@ -256,7 +262,7 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
             assertion.run();
             if (i > 0)
                System.err.printf("%d attempts and %dms asserting %s%n", i + 1, System.currentTimeMillis() - start,
-                     assertion.getClass().getSimpleName());
+                       assertion.getClass().getSimpleName());
             return;
          } catch (AssertionError e) {
             error = e;
@@ -272,5 +278,4 @@ public class SecurityGroupClientLiveTest extends BaseComputeServiceContextLiveTe
    }
 
    public static final String PREFIX = System.getProperty("user.name") + "-ec2";
-
 }
