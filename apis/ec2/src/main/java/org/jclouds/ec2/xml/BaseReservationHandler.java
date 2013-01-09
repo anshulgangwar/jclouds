@@ -123,7 +123,7 @@ public abstract class BaseReservationHandler<T> extends HandlerForGeneratedReque
          }
       } else if (equalsOrSuffix(qName, "tagSet")) {
          inTagSet = false;
-      } else if (equalsOrSuffix(qName, "groupId")) {
+      } else if (equalsOrSuffix(qName, "groupId")  && !inVpcGroupSet ) {
          groupNames.add(currentOrNull(currentText));
       } else if (equalsOrSuffix(qName, "ownerId")) {
          ownerId = currentOrNull(currentText);
