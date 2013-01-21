@@ -110,6 +110,52 @@ public class InstanceClientLiveTest extends BaseComputeServiceContextLiveTest {
       String resultType = client.getInstanceTypeForInstanceInRegion(region, instanceId1);
       assertEquals(resultType, type, " instance type mismatch ");
    }
+    /* Sailaja Mada - This is the testcase to Deploy a VM with an Invalid InstanceType */
+
+    @Test
+    void testRunInstanceAsInvalidType() {
+        String type = "Invalidsmall";
+        Reservation<? extends RunningInstance> runningInstances = client.runInstancesInRegion(region,
+                defaultZone, imageId, 1, 1, new org.jclouds.ec2.options.RunInstancesOptions().asType(type));
+        RunningInstance instance1 = getOnlyElement(concat(runningInstances));
+        String instanceId1 = instance1.getId();
+        assertTrue(runningTester.apply(instance1), instanceId1 + "didn't achieve the state running!");
+        client.terminateInstancesInRegion(region, instanceId1);
+        String resultType = client.getInstanceTypeForInstanceInRegion(region, instanceId1);
+        assertEquals(resultType, type, " instance type mismatch ");
+    }
+
+
+
+    /* Sailaja Mada - This is the testcase to Create a keypair using create_key_pair <key> */
+
+    @Test
+    void testCreateKeyPair() {
+        String keypair1 = "jcloudsInstanceKey2";
+        org.jclouds.ec2.domain.KeyPair keyPair = ec2Client.getKeyPairServices().createKeyPairInRegion(region, "jcloudsInstanceKey2");
+        String keyPairname = keyPair.getKeyName();
+        assertEquals(keyPair.getKeyName(), keypair1, " KeyPairs did not match ");
+          }
+
+    /* Sailaja Mada - This is the testcase to Create a keypair using create_key_pair <key> */
+
+  /*  @Test(dependsOnMethods = "testCreateKeyPair")
+    void testDeleteKeyPair() {
+        org.jclouds.ec2.domain.KeyPair keyPair = ec2Client.getKeyPairServices().createKeyPairInRegion(region, "jcloudsInstanceKey2");
+        String keyPairname = keyPair.getKeyName();
+        ec2Client.getKeyPairServices().deleteKeyPairInRegion(region, keyPair.getKeyName());
+    }  */
+
+
+
+   /*  @Test
+    void testRunInstanceWithImageId() {
+        Reservation<? extends RunningInstance> runningInstances = client.runInstancesInRegion(imageId,new org.jclouds.ec2.options.RunInstancesOptions().asImageId(imageId));
+        RunningInstance instance1 = getOnlyElement(concat(runningInstances));
+        String instanceId1 = instance1.getId();
+        assertTrue(runningTester.apply(instance1), instanceId1 + "didn't achieve the state running!");
+        client.terminateInstancesInRegion(region, instanceId1);
+     }     */
 
    /*@Test
 void testRunInstanceWithSecurityGroup() {
