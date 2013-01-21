@@ -114,7 +114,7 @@ public class InstanceClientLiveTest extends BaseComputeServiceContextLiveTest {
 
     @Test
     void testRunInstanceAsInvalidType() {
-        String type = "Invalidsmall1";
+        String type = "Invalidsmall2";
         Reservation<? extends RunningInstance> runningInstances = client.runInstancesInRegion(region,
                 defaultZone, imageId, 1, 1, new org.jclouds.ec2.options.RunInstancesOptions().asType(type));
         RunningInstance instance1 = getOnlyElement(concat(runningInstances));
